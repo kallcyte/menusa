@@ -62,8 +62,7 @@ export function Admin({
   const [showAdd, setShowAdd] = useState(false);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [published, setPublished] = useState(true);
-  const [restaurantId, setRestaurantId] = useState("restaurant-1");
-  const queryClient = useQueryClient();
+  const [restaurantId, setRestaurantId] = useState("");
   const { toast } = useToast();
   useEffect(() => {
     if (tab !== initialTab)
@@ -133,8 +132,8 @@ export function Admin({
     if (selectedRestaurant) setPublished(selectedRestaurant.published === 1);
   }, [selectedRestaurant?.id, selectedRestaurant?.published]);
   const itemsQuery = useQuery({
-    queryKey: ["admin", "items", restaurantId],
-    queryFn: () => fetchAdminItems(restaurantId),
+    queryKey: ["admin", "items", selectedRestaurant?.id ?? "none"],
+    queryFn: () => fetchAdminItems(selectedRestaurant!.id),
     enabled: Boolean(selectedRestaurant),
     staleTime: 30_000,
   });
@@ -255,12 +254,6 @@ export function Admin({
           <div className="status-pill">
             <span className="live-dot" /> <span className="sidebar-label">Live menu</span>
           </div>
-          <button
-            className="view-link"
-            onClick={() => selectedRestaurant && navigate(`/${selectedRestaurant.slug}`)}
-          >
-            <ArrowUpRight size={15} /> <span className="sidebar-label">View public menu</span>
-          </button>
         </SidebarFooter>
       </Sidebar>
       <section className="admin-main">
@@ -282,30 +275,37 @@ export function Admin({
                </span>
             </div>
           </div>
-          <div className="admin-user-wrap">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="admin-user">
-                  <div className="user-avatar">
-                    {sessionQuery.data?.user.name.slice(0, 2).toUpperCase() ?? "AM"}
+          <div className="admin-header-actions">
+            {selectedRestaurant && (
+              <button className="admin-view-link" onClick={() => navigate(`/${selectedRestaurant.slug}`)}>
+                View public menu <ArrowUpRight size={14} />
+              </button>
+            )}
+            <div className="admin-user-wrap">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="admin-user">
+                    <div className="user-avatar">
+                      {sessionQuery.data?.user.name.slice(0, 2).toUpperCase() ?? "AM"}
+                    </div>
+                    <span>{sessionQuery.data?.user.name ?? "Alex Morgan"}</span>
+                    <ChevronDown size={15} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={10} className="account-menu-content">
+                  <div className="account-summary">
+                    <strong>{sessionQuery.data?.user.name}</strong>
+                    <span>{sessionQuery.data?.user.email}</span>
                   </div>
-                  <span>{sessionQuery.data?.user.name ?? "Alex Morgan"}</span>
-                  <ChevronDown size={15} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={10} className="account-menu-content">
-                <div className="account-summary">
-                  <strong>{sessionQuery.data?.user.name}</strong>
-                  <span>{sessionQuery.data?.user.email}</span>
-                </div>
-                <DropdownMenuItem className="popover-item" onSelect={() => setTab("account")}>
-                  <Settings2 size={15} /> Account settings
-                </DropdownMenuItem>
-                <DropdownMenuItem className="popover-item danger" onSelect={signOut}>
-                  <LogOut size={15} /> Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem className="popover-item" onSelect={() => setTab("account")}>
+                    <Settings2 size={15} /> Account settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="popover-item danger" onSelect={signOut}>
+                    <LogOut size={15} /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </header>
         {!selectedRestaurant && tab !== "account" && tab !== "waitlist" ? (
