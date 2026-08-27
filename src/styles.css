@@ -329,15 +329,56 @@
   .landing-faq-q { @apply flex w-full items-center justify-between gap-4 bg-transparent py-6 text-left text-[16px] font-medium tracking-[-0.02em] text-[#242622] hover:text-[#e75f45] transition-colors; }
   .landing-faq-icon { @apply grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#d4d4cc] bg-[#f7f7f3] font-mono text-xs text-[#777970] transition-colors; }
   .landing-faq-a { @apply pb-6 pr-10 text-[14px] leading-[1.7] text-[#777970]; }
-  .landing-cta { @apply bg-[#252723] px-[5.6vw] py-16 md:py-24; }
-  .landing-cta-card { @apply mx-auto max-w-[720px] rounded-[28px] border border-white/10 bg-[#2e312c] p-10 text-center shadow-[0_24px_64px_rgba(0,0,0,0.32)] md:p-12; }
-  .landing-cta-card h2 { @apply mt-4 text-[clamp(34px,5vw,52px)] font-semibold leading-[0.9] tracking-[-0.07em] text-white; }
-  .landing-cta-card h2 em { @apply font-display font-medium text-[#e78a77]; }
-  .landing-cta-card > p:nth-of-type(2) { @apply mx-auto mt-5 max-w-[520px] text-[15px] leading-[1.6] text-[#b8bbb0]; }
-.public-status {
-  @apply mx-[5.6vw] my-24 flex flex-col items-center gap-4 rounded border border-[#deded6] bg-white p-14 text-center;
-}
-.public-status h2 { @apply font-display text-[30px] tracking-[-0.04em]; }
+   .landing-cta { @apply bg-[#252723] px-[5.6vw] py-16 md:py-24; }
+   .landing-cta-card { @apply mx-auto max-w-[720px] rounded-[28px] border border-white/10 bg-[#2e312c] p-10 text-center shadow-[0_24px_64px_rgba(0,0,0,0.32)] md:p-12; }
+   .landing-cta-card h2 { @apply mt-4 text-[clamp(34px,5vw,52px)] font-semibold leading-[0.9] tracking-[-0.07em] text-white; }
+   .landing-cta-card h2 em { @apply font-display font-medium text-[#e78a77]; }
+   .landing-cta-card > p:nth-of-type(2) { @apply mx-auto mt-5 max-w-[520px] text-[15px] leading-[1.6] text-[#b8bbb0]; }
+   .waitlist-form { @apply flex flex-col gap-2 sm:flex-row sm:items-start; }
+   .waitlist-field { @apply flex flex-1 items-center gap-2 rounded-full border border-[#d4d4cc] bg-white px-3.5 py-1 shadow-sm focus-within:border-[#e75f45] focus-within:ring-2 focus-within:ring-[#e75f45]/10; }
+   .waitlist-form--dark .waitlist-field { @apply border-white/15 bg-white/10 backdrop-blur; }
+   .waitlist-field-icon { @apply shrink-0 text-[#85877d]; }
+   .waitlist-field-icon--dark { @apply text-white/60; }
+   .waitlist-input { @apply w-full bg-transparent py-2.5 text-[13px] text-[#242622] placeholder:text-[#a0a29a] focus:outline-none; }
+   .waitlist-input--dark { @apply text-white placeholder:text-white/50; }
+   .waitlist-submit { @apply h-10 shrink-0 rounded-full px-5 text-[13px] font-semibold whitespace-nowrap; }
+   .waitlist-submit--dark { @apply bg-white text-[#252723] hover:bg-[#f3f2ed]; }
+   .waitlist-error { @apply mt-2 text-xs text-[#b04b39]; }
+   .waitlist-error--dark { @apply text-[#ffb3a3]; }
+   .waitlist-hint { @apply mt-2 text-[11px] text-[#85877d]; }
+   .waitlist-hint--dark { @apply text-white/50; }
+   .waitlist-success { @apply flex items-start gap-3 rounded-2xl border border-[#d6e2d4] bg-[#ebf0e8] p-4; }
+   .waitlist-success--dark { @apply border-white/15 bg-white/10 backdrop-blur; }
+   .waitlist-success-icon { @apply grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#5a9a68] text-white; }
+   .waitlist-success--dark .waitlist-success-icon { @apply bg-white text-[#252723]; }
+   .waitlist-success-title { @apply text-[13px] font-semibold text-[#242622]; }
+   .waitlist-success--dark .waitlist-success-title { @apply text-white; }
+   .waitlist-success-copy { @apply mt-1 text-xs leading-[1.5] text-[#5a6b5a]; }
+   .waitlist-success--dark .waitlist-success-copy { @apply text-white/70; }
+   .waitlist-panel-head { @apply mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between; }
+   .waitlist-panel-head h2 { @apply text-[28px] font-semibold tracking-[-0.04em] text-[#242622]; }
+   .waitlist-panel-head p { @apply mt-1 max-w-[420px] text-[13px] leading-[1.5] text-[#777970]; }
+   .waitlist-panel-actions { @apply flex items-center gap-3; }
+   .waitlist-count { @apply inline-flex items-center gap-1.5 rounded-full bg-[#f3f2ed] px-3 py-1.5 text-xs font-medium text-[#555850]; }
+   .waitlist-table-wrap { @apply overflow-hidden rounded-xl border border-[#e3e3dd] bg-white; }
+   .waitlist-table { @apply w-full border-collapse text-left text-sm; }
+   .waitlist-table thead th { @apply bg-[#f7f7f3] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.06em] text-[#85877d]; }
+   .waitlist-table tbody td { @apply border-t border-[#edede7] px-4 py-3.5 text-[13px]; }
+   .waitlist-email { @apply font-medium text-[#242622]; }
+   .waitlist-restaurant { @apply text-[#555850]; }
+   .waitlist-muted { @apply text-[#a0a29a]; }
+   .waitlist-date { @apply whitespace-nowrap font-mono text-xs text-[#777970]; }
+   .waitlist-copy { @apply grid h-7 w-7 place-items-center rounded-md bg-transparent text-[#85877d] hover:bg-[#f3f2ed] hover:text-[#242622]; }
+   .waitlist-empty { @apply flex flex-col items-center gap-3 rounded-xl border border-dashed border-[#d4d4cc] bg-[#f7f7f3] px-8 py-16 text-center; }
+   .waitlist-empty-icon { @apply text-[#a0a29a]; }
+   .waitlist-empty h3 { @apply text-[16px] font-semibold text-[#242622]; }
+   .waitlist-empty p { @apply text-sm text-[#777970]; }
+   .waitlist-loading { @apply py-12 text-center text-sm text-[#777970]; }
+   .waitlist-error-panel { @apply flex flex-col items-center gap-3 rounded-xl border border-[#efc9c1] bg-[#fffaf8] px-8 py-10 text-center; }
+  .public-status {
+    @apply mx-[5.6vw] my-24 flex flex-col items-center gap-4 rounded border border-[#deded6] bg-white p-14 text-center;
+  }
+  .public-status h2 { @apply font-display text-[30px] tracking-[-0.04em]; }
 .public-status p { @apply max-w-[420px] text-sm leading-[1.5] text-[#7c7e76]; }
 .menu-grid-empty { @apply col-span-full flex flex-col items-center gap-3 py-16 text-center text-sm text-[#85877d]; }
  .skeleton-bone { @apply block animate-pulse rounded bg-[#ecece6]; }

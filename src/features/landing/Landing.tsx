@@ -1,30 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  Check,
-  Clock3,
-  Image as ImageIcon,
-  Layers,
-  MapPin,
-  QrCode,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Store,
-  Zap,
-} from "lucide-react";
-import { Button, Logo } from "../../components";
-import { Input } from "../../components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
+ import { useEffect, useMemo, useState } from "react";
+ import {
+   ArrowUpRight,
+   Check,
+   Clock3,
+   Image as ImageIcon,
+   Layers,
+   Mail,
+   MapPin,
+   QrCode,
+   Search,
+   ShieldCheck,
+   Sparkles,
+   Store,
+   Zap,
+ } from "lucide-react";
+ import { Button, Logo } from "../../components";
+ import { Input } from "../../components/ui/input";
+ import {
+   Dialog,
+   DialogContent,
+   DialogDescription,
+   DialogHeader,
+   DialogTitle,
+ } from "../../components/ui/dialog";
 import { categories, menuItems, restaurants, type MenuItem } from "../../data";
 import { optionLabel } from "../shared";
 import { allergenOptions, dietaryTagOptions, halalStatusOptions, spiceLevelOptions } from "../../data";
+import { ApiError, joinWaitlist } from "../../api";
 
 type Navigate = (path: string) => void;
 
@@ -70,7 +72,7 @@ type Navigate = (path: string) => void;
  const faqs = [
    {
      q: "Is it free to try?",
-     a: "Yes — create your restaurant, add dishes and photos, and publish. Your menu is live at digimenu.com/your-name as soon as you hit publish. No credit card needed to start.",
+     a: "Yes — create your restaurant, add dishes and photos, and publish. Your menu is live at menusa.com/your-name as soon as you hit publish. No credit card needed to start.",
    },
    {
      q: "Do I need a designer or developer?",
@@ -82,13 +84,88 @@ type Navigate = (path: string) => void;
    },
    {
      q: "Can I use my own web address?",
-     a: "Right now your menu lives at digimenu.com/your-name — perfect for a QR code. Custom domains are coming soon, and your links will keep working.",
+     a: "Right now your menu lives at menusa.com/your-name — perfect for a QR code. Custom domains are coming soon, and your links will keep working.",
    },
    {
      q: "What happens to my QR code when I update the menu?",
      a: "Nothing — it just keeps working. Your QR points to your link. Change a price or photo and hit publish, and every table sees the new menu instantly. No need to reprint.",
    },
  ];
+
+
+ function WaitlistForm({ variant = "light", className = "" }: { variant?: "light" | "dark"; className?: string }) {
+   const [email, setEmail] = useState("");
+   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+   const [message, setMessage] = useState("");
+ 
+   async function handleSubmit(e: React.FormEvent) {
+     e.preventDefault();
+     const trimmed = email.trim();
+     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+       setStatus("error");
+       setMessage("Please enter a valid email address.");
+       return;
+     }
+     setStatus("loading");
+     setMessage("");
+     try {
+       const res = await joinWaitlist(trimmed);
+       if ((res as { already?: boolean }).already) {
+         setStatus("success");
+         setMessage("You're already on the list — we'll be in touch soon!");
+       } else {
+         setStatus("success");
+         setMessage("You're on the list! We'll let you know as soon as Menusa is ready for you.");
+       }
+       setEmail("");
+     } catch (err) {
+       setStatus("error");
+       if (err instanceof ApiError) setMessage(err.message);
+       else setMessage("Something went wrong. Please try again.");
+     }
+   }
+ 
+   const isDark = variant === "dark";
+ 
+   if (status === "success") {
+     return (
+       <div className={className}>
+         <div className={isDark ? "waitlist-success waitlist-success--dark" : "waitlist-success"}>
+           <span className="waitlist-success-icon"><Check size={16} /></span>
+           <div>
+             <p className="waitlist-success-title">You're on the list!</p>
+             <p className="waitlist-success-copy">{message}</p>
+           </div>
+         </div>
+       </div>
+     );
+   }
+ 
+   return (
+     <form onSubmit={handleSubmit} className={className} noValidate>
+       <div className={isDark ? "waitlist-form waitlist-form--dark" : "waitlist-form"}>
+         <div className="waitlist-field">
+           <Mail size={16} className={isDark ? "waitlist-field-icon waitlist-field-icon--dark" : "waitlist-field-icon"} />
+           <input
+             type="email"
+             value={email}
+             onChange={(e) => setEmail(e.target.value)}
+             placeholder="Your email"
+             aria-label="Email address"
+             className={isDark ? "waitlist-input waitlist-input--dark" : "waitlist-input"}
+             disabled={status === "loading"}
+             required
+           />
+         </div>
+         <Button type="submit" disabled={status === "loading"} className={isDark ? "waitlist-submit waitlist-submit--dark" : "waitlist-submit"}>
+           {status === "loading" ? "Joining..." : "Join the waitlist"} <ArrowUpRight size={14} />
+         </Button>
+       </div>
+       {status === "error" && message && <p className={isDark ? "waitlist-error waitlist-error--dark" : "waitlist-error"}>{message}</p>}
+       <p className={isDark ? "waitlist-hint waitlist-hint--dark" : "waitlist-hint"}>No spam. We&apos;ll only email you when Menusa is ready.</p>
+     </form>
+   );
+ }
 
 export function Landing({ navigate }: { navigate: Navigate }) {
   const [active, setActive] = useState("All");
@@ -97,7 +174,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    document.title = "Digimenu — Beautiful QR menus for independent restaurants";
+    document.title = "Menusa — Beautiful QR menus for independent restaurants";
   }, []);
 
   const filtered = useMemo(() => {
@@ -115,7 +192,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
     <main className="landing-shell">
       {/* NAV */}
       <header className="site-header sticky top-0 z-30 bg-[#f3f2ed]/80 backdrop-blur supports-[backdrop-filter]:bg-[#f3f2ed]/70 border-b border-transparent">
-        <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Digimenu home">
+        <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Menusa home">
           <Logo dark />
         </a>
         <nav className="hidden md:flex items-center gap-6 text-[13px] text-[#777970]" aria-label="Primary">
@@ -125,60 +202,50 @@ export function Landing({ navigate }: { navigate: Navigate }) {
           <a href="#faq" className="hover:text-[#242622] transition-colors">FAQ</a>
         </nav>
         <div className="header-actions">
-          <Button variant="ghost" onClick={() => navigate("/login")} className="hidden sm:inline-flex">
-            Log in
+          <Button variant="outline" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="hidden sm:inline-flex bg-white">
+            See a live menu
           </Button>
-          <Button variant="dark" onClick={() => navigate("/admin")} className="hidden sm:inline-flex">
-            Create menu — free <ArrowUpRight size={15} />
-          </Button>
-          <Button variant="dark" onClick={() => navigate("/admin")} className="sm:hidden" size="sm">
-            Start free
+          <Button variant="outline" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} size="sm" className="sm:hidden bg-white">
+            See demo
           </Button>
         </div>
       </header>
 
-       {/* HERO */}
-       <section className="landing-hero">
-         <div className="landing-hero-grid">
-           <div>
-             <div className="eyebrow !text-[#e75f45] !tracking-[0.08em]">
-               <span className="live-dot !bg-[#e75f45]" /> The easy QR menu for your restaurant
-             </div>
-             <h1 className="hero-display !mb-5 !mt-5">
-               Your menu,
-               <br />
-               <em>beautiful</em>
-               <br />
-               <span className="font-sans font-semibold tracking-[-0.08em] text-[#e75f45]">on every phone.</span>
-             </h1>
-             <p className="hero-copy !max-w-[420px] !text-[17px]">
-               A beautiful menu for your restaurant. One link, one QR code — <span className="text-[#242622] font-medium">always up to date.</span>
-             </p>
-             <div className="mt-7 flex flex-wrap gap-3">
-               <Button onClick={() => navigate("/admin")} className="h-11 px-6 text-[14px]">
-                 Create your menu — free <ArrowUpRight size={16} />
-               </Button>
-               <Button variant="outline" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="h-11 px-6 bg-white">
-                 See a live menu
-               </Button>
-             </div>
-             <div className="mt-5 flex flex-wrap items-center gap-3 text-[11px] text-[#85877d]">
-               <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> No credit card</span>
-               <span className="h-3 w-px bg-[#d4d4cc]" />
-               <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> Ready in 2 minutes</span>
-               <span className="h-3 w-px bg-[#d4d4cc]" />
-               <span className="font-mono">your-name.digimenu.com</span>
-             </div>
-             <div className="mt-8 flex items-center gap-3 border-t border-[#d4d4cc] pt-5">
-               <div className="flex -space-x-2">
-                 <span className="grid h-7 w-7 place-items-center rounded-full bg-[#252723] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">S</span>
-                 <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e75f45] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">A</span>
-                 <span className="grid h-7 w-7 place-items-center rounded-full bg-[#5a7b65] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">+</span>
-               </div>
-               <p className="text-xs leading-[1.4] text-[#777970]">
-                 <span className="font-semibold text-[#242622]">Loved by restaurants like</span> — Salt & Ember, Alba House + yours
-               </p>
-             </div>
+        {/* HERO */}
+        <section className="landing-hero">
+          <div className="landing-hero-grid">
+            <div>
+              <div className="eyebrow !text-[#e75f45] !tracking-[0.08em]">
+                <span className="live-dot !bg-[#e75f45]" /> The easy QR menu for your restaurant
+              </div>
+              <h1 className="hero-display !mb-5 !mt-5">
+                Your menu,
+                <br />
+                <em>beautiful</em>
+                <br />
+                <span className="font-sans font-semibold tracking-[-0.08em] text-[#e75f45]">on every phone.</span>
+              </h1>
+              <p className="hero-copy !max-w-[420px] !text-[17px]">
+                A beautiful menu for your restaurant. One link, one QR code — <span className="text-[#242622] font-medium">always up to date.</span>
+              </p>
+              <WaitlistForm className="mt-6 max-w-[420px]" />
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-[#85877d]">
+                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> No credit card</span>
+                <span className="h-3 w-px bg-[#d4d4cc]" />
+                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> Ready in 2 minutes</span>
+                <span className="h-3 w-px bg-[#d4d4cc]" />
+                <span className="font-mono">your-name.menusa.com</span>
+              </div>
+              <div className="mt-6 flex items-center gap-3 border-t border-[#d4d4cc] pt-5">
+                <div className="flex -space-x-2">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-[#252723] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">S</span>
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e75f45] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">A</span>
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-[#5a7b65] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">+</span>
+                </div>
+                <p className="text-xs leading-[1.4] text-[#777970]">
+                  <span className="font-semibold text-[#242622]">Loved by restaurants like</span> — Salt & Ember, Alba House + yours
+                </p>
+              </div>
            </div>
 
           {/* Visual */}
@@ -217,7 +284,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
               </div>
               <div>
                 <p className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#85877d]">Scan at table 12</p>
-                <p className="text-[13px] font-semibold tracking-[-0.02em] text-[#242622]">digimenu.com/salt-ember</p>
+                <p className="text-[13px] font-semibold tracking-[-0.02em] text-[#242622]">menusa.com/salt-ember</p>
                 <p className="text-[11px] text-[#5a9a68]">● Live — updates on publish</p>
               </div>
             </div>
@@ -255,8 +322,8 @@ export function Landing({ navigate }: { navigate: Navigate }) {
            <div className="landing-strip-card landing-strip-card--cta">
              <p className="font-display text-[20px] font-medium leading-none tracking-[-0.04em]">Your restaurant here<span className="text-[#e75f45]">.</span></p>
              <p className="mt-2 text-xs leading-[1.5] text-[#777970]">Get your link in 30 seconds. No design needed.</p>
-             <Button onClick={() => navigate("/admin")} size="sm" className="mt-4 w-fit">Claim your link</Button>
-             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.06em] text-[#a0a29a]">digimenu.com/your-name</p>
+             <Button onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })} size="sm" className="mt-4 w-fit">Join the waitlist</Button>
+             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.06em] text-[#a0a29a]">menusa.com/your-name</p>
            </div>
          </div>
        </section>
@@ -264,7 +331,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
        {/* PROBLEM → SOLUTION */}
        <section className="landing-section">
          <div className="landing-section-head">
-           <p className="section-kicker">Why Digimenu</p>
+           <p className="section-kicker">Why Menusa</p>
            <h2>Paper menus can&apos;t keep up.<br /><em>Yours can.</em></h2>
            <p>No more reprints or crossed-out prices. Just update and publish — done.</p>
          </div>
@@ -319,7 +386,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
              <div className="landing-step-card">
                <p className="landing-step-kicker">Set up your restaurant</p>
                <h3>Pick your link</h3>
-               <p>Add your name, description, address and hours. Your menu will live at <span className="font-mono text-[#242622]">digimenu.com/your-name</span> — perfect for a QR code.</p>
+               <p>Add your name, description, address and hours. Your menu will live at <span className="font-mono text-[#242622]">menusa.com/your-name</span> — perfect for a QR code.</p>
                <div className="landing-step-meta"><MapPin size={12} /> 14 Harbour Lane · <Clock3 size={12} /> Open today</div>
              </div>
            </div>
@@ -343,8 +410,8 @@ export function Landing({ navigate }: { navigate: Navigate }) {
            </div>
          </div>
          <div className="landing-steps-cta">
-           <Button onClick={() => navigate("/admin")}>Start building — free <ArrowUpRight size={15} /></Button>
-           <span className="text-xs text-[#85877d]">No card needed · Go live when you&apos;re ready</span>
+           <Button onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })}>Join the waitlist — free <ArrowUpRight size={15} /></Button>
+           <span className="text-xs text-[#85877d]">No spam · We&apos;ll email you when Menusa is ready</span>
          </div>
        </section>
  
@@ -381,7 +448,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
          </div>
  
          <div className="bento-grid !mt-6">
-           {previewItems.map((item, index) => (
+           {previewItems.map((item: MenuItem, index: number) => (
              <button
                key={item.id}
                onClick={() => setSelectedItem(item)}
@@ -433,7 +500,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
              <li><Check size={14} /> Your photos are safe and load super fast</li>
              <li><Check size={14} /> Everything is secure and backed up</li>
            </ul>
-           <Button variant="dark" onClick={() => navigate("/admin")} className="mt-5">Open your workspace <ArrowUpRight size={14} /></Button>
+           <Button variant="dark" onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })} className="mt-5">Join the waitlist <ArrowUpRight size={14} /></Button>
          </div>
        </section>
 
@@ -455,24 +522,23 @@ export function Landing({ navigate }: { navigate: Navigate }) {
           ))}
         </div>
       </section>
-
-       {/* FINAL CTA */}
-       <section className="landing-cta">
+        {/* WAITLIST CTA */}
+       <section id="waitlist" className="landing-cta">
          <div className="landing-cta-card">
-           <p className="eyebrow !text-[#e78a77] !justify-center">Ready when you are</p>
-           <h2>Your menu,<br /><em>ready tonight.</em></h2>
-           <p>Takes 2 minutes. Your menu lives at <span className="font-mono text-white">digimenu.com/your-name</span> — print the QR and you&apos;re live.</p>
-           <div className="mt-7 flex flex-wrap justify-center gap-3">
-             <Button onClick={() => navigate("/admin")} className="h-11 px-7 text-[14px]">Create your menu — free <ArrowUpRight size={16} /></Button>
-             <Button variant="outline" onClick={() => navigate("/restaurant-1")} className="h-11 px-7 border-white/20 bg-transparent text-white hover:bg-white hover:text-[#252723]">See a demo menu</Button>
+           <p className="eyebrow !text-[#e78a77] !justify-center">Join the waitlist</p>
+           <h2>Be first to get<br /><em>your menu live.</em></h2>
+           <p>Join the waitlist for early access. We&apos;ll help you set up your menu at <span className="font-mono text-white">menusa.com/your-name</span> — free.</p>
+           <WaitlistForm variant="dark" className="mt-8 mx-auto w-full max-w-[520px]" />
+           <div className="mt-6 flex flex-wrap justify-center gap-3">
+             <Button variant="outline" onClick={() => navigate("/restaurant-1")} className="h-10 px-6 border-white/20 bg-transparent text-white hover:bg-white hover:text-[#252723] text-[13px]">See a demo menu</Button>
            </div>
-           <p className="mt-4 text-xs text-white/60">No credit card · Go live when you&apos;re ready · Change it anytime</p>
-         </div>
-       </section>
+           <p className="mt-4 text-xs text-white/60">No spam · Early access · Free setup help</p>
+        </div>
+      </section>
       <footer className="site-footer">
         <Logo dark />
         <div className="footer-detail">
-          <span>© {new Date().getFullYear()} Digimenu · Made for good evenings</span>
+          <span>© {new Date().getFullYear()} Menusa · Made for good evenings</span>
           <a href="https://instagram.com" aria-label="Instagram" className="text-[#85877d] hover:text-[#242622]">
             <span className="sr-only">Instagram</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" /></svg>
@@ -497,7 +563,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
             </DialogHeader>
             {(selectedItem.dietaryTags?.length || selectedItem.halalStatus || selectedItem.spiceLevel) && (
               <div className="detail-chip-row">
-                {selectedItem.dietaryTags?.map((t) => (
+                {selectedItem.dietaryTags?.map((t: string) => (
                   <span key={t} className="detail-chip">{optionLabel(dietaryTagOptions, t)}</span>
                 ))}
                 {selectedItem.halalStatus && selectedItem.halalStatus !== "UNKNOWN" && (
@@ -516,10 +582,10 @@ export function Landing({ navigate }: { navigate: Navigate }) {
               <div className="detail-block">
                 <p className="detail-block-label">Allergens</p>
                 {selectedItem.allergens?.length ? (
-                  <p>{selectedItem.allergens.map((a) => optionLabel(allergenOptions, a)).join(" · ")}</p>
+                  <p>{selectedItem.allergens.map((a: string) => optionLabel(allergenOptions, a)).join(" · ")}</p>
                 ) : null}
                 {selectedItem.mayContain?.length ? (
-                  <p className="mt-1 text-[#806b45]">May contain: {selectedItem.mayContain.map((a) => optionLabel(allergenOptions, a)).join(" · ")}</p>
+                  <p className="mt-1 text-[#806b45]">May contain: {selectedItem.mayContain.map((a: string) => optionLabel(allergenOptions, a)).join(" · ")}</p>
                 ) : null}
               </div>
             )}

@@ -1,2 +1,5 @@
 # Copy to .dev.vars for local Worker development.
 BETTER_AUTH_SECRET="replace-with-a-long-random-secret"
+SUPERADMIN_EMAIL="admin@menusa.local"
+EMAIL_FROM="Menusa <hello@menusa.example.com>"
+RESEND_API_KEY="re_xxx"

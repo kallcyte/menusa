@@ -1,17 +1,18 @@
-name = "digimenu-api"
+name = "menusa-api"
 main = "server/index.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "digimenu-production"
+database_name = "menusa-production"
 database_id = "replace-with-d1-database-id"
 migrations_dir = "server/db/migrations"
 
 [[r2_buckets]]
 binding = "MENU_IMAGES"
-bucket_name = "digimenu-images"
+bucket_name = "menusa-images"
 
 [vars]
 PUBLIC_APP_URL = "https://menu.example.com"
+EMAIL_FROM = "Menusa <hello@menusa.example.com>"

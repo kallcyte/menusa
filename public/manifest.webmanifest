@@ -1,6 +1,6 @@
 {
-  "name": "digimenu",
-  "short_name": "digimenu",
+  "name": "menusa",
+  "short_name": "menusa",
   "description": "Beautiful menus for places worth finding.",
   "start_url": "/",
   "display": "standalone",

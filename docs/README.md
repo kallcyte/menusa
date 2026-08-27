@@ -1,6 +1,6 @@
-# Digimenu
+# Menusa
 
-Digimenu replaces static PDF menus with fast, photo-led web menus that restaurant teams can update without a redesign.
+Menusa replaces static PDF menus with fast, photo-led web menus that restaurant teams can update without a redesign.
 
 Public menus are tenant-scoped by slug: `/restaurant-1` and `/restaurant-2` are separate menu pages backed by `/api/menu/:slug`.
 
@@ -40,7 +40,7 @@ Better Auth is mounted at `/api/auth/*` and uses D1 directly. Email/password aut
 ## Cloudflare deployment
 
 1. Create a D1 database and R2 bucket, then replace the placeholders in `wrangler.api.toml`.
-2. Apply schema with `npx wrangler d1 migrations apply digimenu-production --config wrangler.api.toml --remote`.
+2. Apply schema with `npx wrangler d1 migrations apply menusa-production --config wrangler.api.toml --remote`.
 3. Add the auth secret with `npx wrangler secret put BETTER_AUTH_SECRET`.
 4. Update `PUBLIC_APP_URL` to the deployed origin.
 5. Build and deploy the SSR web Worker with `npm run deploy:web`.
@@ -49,6 +49,18 @@ Better Auth is mounted at `/api/auth/*` and uses D1 directly. Email/password aut
 The TanStack Start Worker serves the SSR web app. The Hono API Worker owns D1, R2, and Better Auth. Route `/api/*` from the web origin to the API Worker through a Cloudflare route, custom domain, or service binding.
 
 Public image serving is gated: `/api/images/*` returns an object only when a published menu item from a published restaurant references it. Draft photos are previewed through the authenticated `/api/admin/images/*` route, scoped to the owner's tenant prefix. Sign-in attempts are rate-limited per IP (10/min) and image uploads per restaurant (60/hr) via a D1-backed fixed-window limiter (`server/rate-limit.ts`, migration `0007_rate_limits.sql`) that fails open on database errors. Uploads are validated by magic bytes rather than declared MIME type.
+
+## Email (Resend)
+
+Transactional email is via [Resend](https://resend.com) from the Hono API Worker (`server/email.ts`). Set `RESEND_API_KEY` as a Worker secret and `EMAIL_FROM` as a verified sender (e.g. `Menusa <hello@menusa.example.com>`). Without `RESEND_API_KEY`, email calls are no-ops (logged, not failed).
+
+Flows:
+- **Waitlist confirmation** — `POST /api/waitlist` inserts then fire-and-forgets `sendWaitlistConfirmation` via `c.executionCtx.waitUntil` (skips duplicates).
+- **Promotion / demotion** — `PATCH /api/superadmin/users/:id` sends `sendPromotionEmail` / `sendDemotionEmail` to the target user.
+- **Verification & password reset** — Better Auth hooks in `server/auth.ts` (`sendVerificationEmail`, `sendPasswordResetEmail`) are wired through `authWithEmail` in `server/index.ts`.
+- **Broadcast** — `POST /api/superadmin/broadcast` (superadmin-only, `audience: waitlist | users | all`, `subject` + `html` + `text`) batches via `resend.batch.send` (100/recipients per call). UI at `/superadmin/broadcast`.
+
+Local dev: add `RESEND_API_KEY` and `EMAIL_FROM` to `.dev.vars` (see `.dev.vars.example`). For production, `npx wrangler secret put RESEND_API_KEY --config wrangler.api.toml` and set `EMAIL_FROM` in `[vars]`.
 
 ## Verification
 

@@ -1,7 +1,10 @@
 import { menuItems, restaurants, type MenuItem, type Restaurant } from './data'
 
-export type AuthSession = { user: { id: string; name: string; email: string }; session: { id: string; expiresAt: string } }
+export type AuthSession = { user: { id: string; name: string; email: string; role?: string }; session: { id: string; expiresAt: string } }
 export type AdminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number }
+export type SuperadminUser = { id: string; name: string; email: string; role: string; createdAt: string }
+export type SuperadminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number; ownerId: string; ownerEmail: string | null; createdAt: string }
+export type WaitlistEntry = { id: string; email: string; restaurantName: string | null; createdAt: string }
 
 export class ApiError extends Error {
   constructor(readonly status: number, message: string) { super(message) }
@@ -133,5 +136,45 @@ export function publishAdminMenu(restaurantId?: string) {
 }
 
 export function unpublishAdminMenu(restaurantId?: string) {
-  return request<{ ok: boolean }>(`/api/admin/unpublish${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'POST' })
+   return request<{ ok: boolean }>(`/api/admin/unpublish${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'POST' })
+ }
+
+export function joinWaitlist(email: string, restaurantName?: string) {
+   return request<{ ok: boolean; already?: boolean }>('/api/waitlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, restaurantName: restaurantName || undefined }) })
+ }
+
+export function fetchWaitlist() {
+  return request<{ entries: WaitlistEntry[] }>('/api/superadmin/waitlist')
+}
+
+export function fetchSuperadminMe() {
+  return request<{ user: { id: string; email: string; name: string; role: string } }>('/api/superadmin/me')
+}
+
+export function fetchSuperadminWaitlist() {
+  return request<{ entries: WaitlistEntry[] }>('/api/superadmin/waitlist')
+}
+
+export function fetchSuperadminUsers() {
+  return request<{ users: SuperadminUser[] }>('/api/superadmin/users')
+}
+
+export function updateSuperadminUserRole(id: string, role: 'user' | 'superadmin') {
+  return request<{ ok: boolean }>(`/api/superadmin/users/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) })
+}
+
+export function deleteSuperadminUser(id: string) {
+  return request<{ ok: boolean }>(`/api/superadmin/users/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function fetchSuperadminRestaurants() {
+  return request<{ restaurants: SuperadminRestaurant[] }>('/api/superadmin/restaurants')
+}
+
+export function createSuperadminRestaurant(input: Pick<SuperadminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours'>) {
+  return request<{ restaurant: SuperadminRestaurant }>('/api/superadmin/restaurants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
+}
+
+export function sendSuperadminBroadcast(input: { audience: 'waitlist' | 'users' | 'all'; subject: string; html: string; text: string }) {
+  return request<{ ok: boolean; sent: number; skipped?: boolean; reason?: string }>('/api/superadmin/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
 }

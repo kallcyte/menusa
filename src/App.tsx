@@ -3,3 +3,4 @@
 export { Login } from "./features/auth/Login";
 export { PublicMenu } from "./features/public/PublicMenu";
 export { Admin } from "./features/workspace/Admin";
+export { Superadmin } from "./features/superadmin/Superadmin";

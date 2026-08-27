@@ -31,9 +31,14 @@ export const restaurantSettingsSchema = z.object({
 })
 
 export const createRestaurantSchema = z.object({
-  slug: restaurantSlug,
-  name: z.string().min(1).max(120),
-  description: z.string().max(500),
-  address: z.string().max(240),
-  hours: z.string().max(240),
-})
+   slug: restaurantSlug,
+   name: z.string().min(1).max(120),
+   description: z.string().max(500),
+   address: z.string().max(240),
+   hours: z.string().max(240),
+ })
+ 
+export const waitlistSchema = z.object({
+   email: z.string().email().max(254).transform((v) => v.trim().toLowerCase()),
+   restaurantName: z.string().max(120).optional().transform((v) => v?.trim() || undefined),
+ })

@@ -9,6 +9,7 @@ import {
   Menu as MenuIcon,
   Plus,
   Settings2,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "../../components";
 import {
@@ -45,9 +46,10 @@ import { MenuManager } from "./MenuManager";
 import { MenuSettingsPanel } from "./MenuSettingsPanel";
 import { AddItemModal } from "./AddItemModal";
 import { AddRestaurantModal } from "./AddRestaurantModal";
+import { WaitlistPanel } from "./WaitlistPanel";
 import { AccountSettingsPanel } from "../auth/AccountSettingsPanel";
 
-type AdminTab = "menu" | "menu-settings" | "account";
+type AdminTab = "menu" | "menu-settings" | "waitlist" | "account";
 
 export function Admin({
   navigate,
@@ -70,7 +72,9 @@ export function Admin({
           ? "/admin"
           : tab === "menu-settings"
             ? "/admin/menu-settings"
-            : "/account/settings",
+            : tab === "waitlist"
+              ? "/admin/waitlist"
+              : "/account/settings",
       );
   }, [initialTab, navigate, tab]);
   const sessionQuery = useQuery({
@@ -230,6 +234,9 @@ export function Admin({
             >
               <Settings2 size={18} /> <span className="sidebar-label">Restaurant settings</span>
             </SidebarMenuButton>
+            <SidebarMenuButton className="nav-item" aria-label="Superadmin" onClick={() => navigate("/superadmin")}>
+              <ShieldCheck size={18} /> <span className="sidebar-label">Superadmin</span>
+            </SidebarMenuButton>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="sidebar-bottom">
@@ -257,6 +264,8 @@ export function Admin({
                    ? "Your menu"
                    : tab === "menu-settings"
                       ? "Restaurant settings"
+                     : tab === "waitlist"
+                      ? "Waitlist"
                      : "Account settings"}
                </span>
             </div>
@@ -304,6 +313,8 @@ export function Admin({
             loadError={itemsQuery.error instanceof Error ? itemsQuery.error.message : null}
             onRetry={() => itemsQuery.refetch()}
           />
+        ) : tab === "waitlist" ? (
+          <WaitlistPanel />
         ) : tab === "menu-settings" ? (
            <MenuSettingsPanel
              restaurant={selectedRestaurant}

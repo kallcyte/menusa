@@ -1,8 +1,8 @@
-// digimenu service worker — deliberately conservative.
+// menusa service worker — deliberately conservative.
 // Caches only immutable assets: R2 menu images and hashed /assets/* files.
 // HTML and API responses always go to the network so deploys are picked up
 // immediately and auth/admin pages never serve stale shells.
-const CACHE = 'digimenu-static-v1'
+const CACHE = 'menusa-static-v1'
 const MAX_ENTRIES = 120
 
 self.addEventListener('install', () => {

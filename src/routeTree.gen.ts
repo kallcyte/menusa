@@ -13,8 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as SuperadminRouteImport } from './routes/superadmin'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
 import { Route as AdminMenuSettingsRouteImport } from './routes/admin.menu-settings'
+import { Route as AdminWaitlistRouteImport } from './routes/admin.waitlist'
+import { Route as SuperadminBroadcastRouteImport } from './routes/superadmin.broadcast'
+import { Route as SuperadminRestaurantsRouteImport } from './routes/superadmin.restaurants'
+import { Route as SuperadminUsersRouteImport } from './routes/superadmin.users'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,6 +41,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuperadminRoute = SuperadminRouteImport.update({
+  id: '/superadmin',
+  path: '/superadmin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountSettingsRoute = AccountSettingsRouteImport.update({
   id: '/account/settings',
   path: '/account/settings',
@@ -46,22 +56,52 @@ const AdminMenuSettingsRoute = AdminMenuSettingsRouteImport.update({
   path: '/menu-settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminWaitlistRoute = AdminWaitlistRouteImport.update({
+  id: '/waitlist',
+  path: '/waitlist',
+  getParentRoute: () => AdminRoute,
+} as any)
+const SuperadminBroadcastRoute = SuperadminBroadcastRouteImport.update({
+  id: '/broadcast',
+  path: '/broadcast',
+  getParentRoute: () => SuperadminRoute,
+} as any)
+const SuperadminRestaurantsRoute = SuperadminRestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
+  getParentRoute: () => SuperadminRoute,
+} as any)
+const SuperadminUsersRoute = SuperadminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => SuperadminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
+  '/superadmin/broadcast': typeof SuperadminBroadcastRoute
+  '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
+  '/superadmin/broadcast': typeof SuperadminBroadcastRoute
+  '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +109,13 @@ export interface FileRoutesById {
   '/$slug': typeof SlugRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
+  '/superadmin/broadcast': typeof SuperadminBroadcastRoute
+  '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +124,39 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/admin'
     | '/login'
+    | '/superadmin'
     | '/account/settings'
     | '/admin/menu-settings'
+    | '/admin/waitlist'
+    | '/superadmin/broadcast'
+    | '/superadmin/restaurants'
+    | '/superadmin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$slug'
     | '/admin'
     | '/login'
+    | '/superadmin'
     | '/account/settings'
     | '/admin/menu-settings'
+    | '/admin/waitlist'
+    | '/superadmin/broadcast'
+    | '/superadmin/restaurants'
+    | '/superadmin/users'
   id:
     | '__root__'
     | '/'
     | '/$slug'
     | '/admin'
     | '/login'
+    | '/superadmin'
     | '/account/settings'
     | '/admin/menu-settings'
+    | '/admin/waitlist'
+    | '/superadmin/broadcast'
+    | '/superadmin/restaurants'
+    | '/superadmin/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,6 +164,7 @@ export interface RootRouteChildren {
   SlugRoute: typeof SlugRoute
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SuperadminRoute: typeof SuperadminRouteWithChildren
   AccountSettingsRoute: typeof AccountSettingsRoute
 }
 
@@ -137,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/superadmin': {
+      id: '/superadmin'
+      path: '/superadmin'
+      fullPath: '/superadmin'
+      preLoaderRoute: typeof SuperadminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/settings': {
       id: '/account/settings'
       path: '/account/settings'
@@ -151,24 +219,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMenuSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/waitlist': {
+      id: '/admin/waitlist'
+      path: '/waitlist'
+      fullPath: '/admin/waitlist'
+      preLoaderRoute: typeof AdminWaitlistRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/superadmin/broadcast': {
+      id: '/superadmin/broadcast'
+      path: '/broadcast'
+      fullPath: '/superadmin/broadcast'
+      preLoaderRoute: typeof SuperadminBroadcastRouteImport
+      parentRoute: typeof SuperadminRoute
+    }
+    '/superadmin/restaurants': {
+      id: '/superadmin/restaurants'
+      path: '/restaurants'
+      fullPath: '/superadmin/restaurants'
+      preLoaderRoute: typeof SuperadminRestaurantsRouteImport
+      parentRoute: typeof SuperadminRoute
+    }
+    '/superadmin/users': {
+      id: '/superadmin/users'
+      path: '/users'
+      fullPath: '/superadmin/users'
+      preLoaderRoute: typeof SuperadminUsersRouteImport
+      parentRoute: typeof SuperadminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminMenuSettingsRoute: typeof AdminMenuSettingsRoute
+  AdminWaitlistRoute: typeof AdminWaitlistRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminMenuSettingsRoute: AdminMenuSettingsRoute,
+  AdminWaitlistRoute: AdminWaitlistRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface SuperadminRouteChildren {
+  SuperadminBroadcastRoute: typeof SuperadminBroadcastRoute
+  SuperadminRestaurantsRoute: typeof SuperadminRestaurantsRoute
+  SuperadminUsersRoute: typeof SuperadminUsersRoute
+}
+
+const SuperadminRouteChildren: SuperadminRouteChildren = {
+  SuperadminBroadcastRoute: SuperadminBroadcastRoute,
+  SuperadminRestaurantsRoute: SuperadminRestaurantsRoute,
+  SuperadminUsersRoute: SuperadminUsersRoute,
+}
+
+const SuperadminRouteWithChildren = SuperadminRoute._addFileChildren(
+  SuperadminRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
+  SuperadminRoute: SuperadminRouteWithChildren,
   AccountSettingsRoute: AccountSettingsRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Clock3, Instagram, MapPin, Search, Sparkles } from "lucide-react";
-import { Button, Logo } from "../../components";
-import { Input } from "../../components/ui/input";
+ import { useEffect, useState } from "react";
+ import { useQuery } from "@tanstack/react-query";
+ import { Clock3, Instagram, MapPin, Search, Sparkles } from "lucide-react";
+ import { Button, Logo } from "../../components";
+ import { Input } from "../../components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -72,9 +72,13 @@ export function PublicMenu({
         <header className="site-header">
           <Logo dark />
           <div className="header-actions">
-            <Button variant="dark" onClick={() => navigate("/admin")}>
-              For restaurants <ArrowUpRight size={15} />
-            </Button>
+            <button
+              className="icon-button"
+              aria-label="Search"
+              onClick={() => document.getElementById("menu-search")?.focus()}
+            >
+              <Search size={19} />
+            </button>
           </div>
         </header>
         <div className="public-status" role="alert">
@@ -110,23 +114,20 @@ export function PublicMenu({
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  return (
-    <main className="public-shell">
-      <header className="site-header">
-        <Logo dark />
-        <div className="header-actions">
-          <button
-            className="icon-button"
-            aria-label="Search"
-            onClick={() => document.getElementById("menu-search")?.focus()}
-          >
-            <Search size={19} />
-          </button>
-          <Button variant="dark" onClick={() => navigate("/admin")}>
-            For restaurants <ArrowUpRight size={15} />
-          </Button>
-        </div>
-      </header>
+   return (
+     <main className="public-shell">
+       <header className="site-header">
+         <Logo dark />
+         <div className="header-actions">
+           <button
+             className="icon-button"
+             aria-label="Search"
+             onClick={() => document.getElementById("menu-search")?.focus()}
+           >
+             <Search size={19} />
+           </button>
+         </div>
+       </header>
       <section className="hero">
         <div className="eyebrow">
           <span className="live-dot" /> {restaurant.hours}

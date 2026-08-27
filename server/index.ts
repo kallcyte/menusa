@@ -1,12 +1,15 @@
 /// <reference types="@cloudflare/workers-types" />
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 import { createAuth } from './auth'
-import { createRestaurantSchema, menuItemSchema, restaurantSettingsSchema } from './schemas'
+import { createRestaurantSchema, menuItemSchema, restaurantSettingsSchema, waitlistSchema } from './schemas'
 import { checkRateLimit, clientIp } from './rate-limit'
 import { sniffImageType } from './images'
+import { sendDemotionEmail, sendPromotionEmail, sendWaitlistConfirmation } from './email'
 
-type Env = { Bindings: { DB: D1Database; MENU_IMAGES: R2Bucket; ASSETS: Fetcher; PUBLIC_APP_URL: string; BETTER_AUTH_SECRET: string } }
+
+type Env = { Bindings: { DB: D1Database; MENU_IMAGES: R2Bucket; ASSETS: Fetcher; PUBLIC_APP_URL: string; BETTER_AUTH_SECRET: string; SUPERADMIN_EMAIL?: string; RESEND_API_KEY?: string; EMAIL_FROM?: string } }
 const app = new Hono<Env>()
 
 // Hardening headers for every API response. CSP is intentionally deferred to the
@@ -18,7 +21,7 @@ app.use('/api/*', async (c, next) => {
   await next()
 })
 
-function requestOrigin(c: any) {
+function requestOrigin(c: { req: { url: string } }) {
   return new URL(c.req.url).origin
 }
 
@@ -49,14 +52,43 @@ function normalizeMenuItem(row: Record<string, unknown>) {
   }
 }
 
-async function getOwnedRestaurant(c: any) {
-  const auth = createAuth(c.env.DB, requestOrigin(c), c.env.BETTER_AUTH_SECRET)
+async function getOwnedRestaurant(c: { env: Env["Bindings"]; req: { query: (k: string) => string | undefined; raw: { headers: Headers } } }) {
+  const auth = createAuth(c.env.DB, requestOrigin(c as unknown as { req: { url: string } }), c.env.BETTER_AUTH_SECRET)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) return null
+  const userId = (session.user as unknown as { id: string }).id
   const requestedId = c.req.query('restaurantId')
   return (requestedId
-    ? c.env.DB.prepare('SELECT id FROM restaurants WHERE id = ? AND owner_id = ? LIMIT 1').bind(requestedId, session.user.id)
-    : c.env.DB.prepare('SELECT id FROM restaurants WHERE owner_id = ? ORDER BY created_at ASC LIMIT 1').bind(session.user.id)).first() as Promise<{ id: string } | null>
+    ? c.env.DB.prepare('SELECT id FROM restaurants WHERE id = ? AND owner_id = ? LIMIT 1').bind(requestedId, userId)
+    : c.env.DB.prepare('SELECT id FROM restaurants WHERE owner_id = ? ORDER BY created_at ASC LIMIT 1').bind(userId)).first() as Promise<{ id: string } | null>
+}
+
+function authWithEmail(c: { env: Env["Bindings"] }, origin: string) {
+  return createAuth(c.env.DB, origin, c.env.BETTER_AUTH_SECRET, {
+    sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
+      const { sendVerificationEmail } = await import("./email")
+      const r = await sendVerificationEmail(c.env, user.email, url)
+      if (!r.ok && !r.skipped) console.error("[email] verification failed", r.error)
+    },
+    sendResetPassword: async ({ user, url }: { user: { email: string }; url: string }) => {
+      const { sendPasswordResetEmail } = await import("./email")
+      const r = await sendPasswordResetEmail(c.env, user.email, url)
+      if (!r.ok && !r.skipped) console.error("[email] reset failed", r.error)
+    },
+  })
+}
+
+async function getSessionAndRole(c: { env: Env["Bindings"]; req: { raw: { headers: Headers }; url: string } }) {
+  const auth = createAuth(c.env.DB, requestOrigin(c as unknown as { req: { url: string } }), c.env.BETTER_AUTH_SECRET)
+  const session = await auth.api.getSession({ headers: c.req.raw.headers })
+  if (!session) return { session: null, role: null as string | null }
+  const user = session.user as unknown as { id: string; email: string; role?: string }
+  let role = user.role ?? "user"
+  if (c.env.SUPERADMIN_EMAIL && user.email === c.env.SUPERADMIN_EMAIL && role !== "superadmin") {
+    await c.env.DB.prepare("UPDATE user SET role = 'superadmin' WHERE id = ?").bind(user.id).run()
+    role = "superadmin"
+  }
+  return { session, role }
 }
 
 // Brute-force guard for credential sign-in. Must register above the auth
@@ -64,18 +96,148 @@ async function getOwnedRestaurant(c: any) {
 app.post('/api/auth/sign-in/email', async c => {
   const allowed = await checkRateLimit(c.env, `signin:${clientIp(c.req.raw.headers)}`, 10, 60_000)
   if (!allowed) return c.json({ error: 'Too many sign-in attempts. Try again shortly.' }, 429)
-  const auth = createAuth(c.env.DB, requestOrigin(c), c.env.BETTER_AUTH_SECRET)
+  const auth = authWithEmail(c, requestOrigin(c))
   return auth.handler(c.req.raw)
 })
 
 app.on(['GET', 'POST'], '/api/auth/*', c => {
-  const auth = createAuth(c.env.DB, requestOrigin(c), c.env.BETTER_AUTH_SECRET)
+  const auth = authWithEmail(c, requestOrigin(c))
   return auth.handler(c.req.raw)
 })
 
 // Better Auth should be mounted here once the deployment secrets are configured.
 // Keeping auth behind /api/auth makes the client independent of the auth provider.
-app.get('/api/health', c => c.json({ ok: true, service: 'digimenu' }))
+// Waitlist — public join, rate-limited per IP
+app.post('/api/waitlist', zValidator('json', waitlistSchema), async (c) => {
+  const allowed = await checkRateLimit(c.env, `waitlist:${clientIp(c.req.raw.headers)}`, 5, 60 * 60 * 1000)
+  if (!allowed) return c.json({ error: 'Too many attempts. Try again later.' }, 429)
+  const { email, restaurantName } = c.req.valid('json')
+  let already = false
+  try {
+    await c.env.DB.prepare('INSERT INTO waitlist (email, restaurant_name) VALUES (?, ?)').bind(email, restaurantName ?? null).run()
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('UNIQUE') || msg.includes('unique')) {
+      already = true
+    } else {
+      throw e
+    }
+  }
+  if (!already) {
+    // Fire-and-forget: don't block the 201 on email delivery.
+    c.executionCtx.waitUntil(sendWaitlistConfirmation(c.env, email, restaurantName ?? null).then((r) => {
+      if (!r.ok && !r.skipped) console.error("[email] waitlist confirmation failed", r.error)
+    }))
+  }
+  return c.json({ ok: true, already: already || undefined }, already ? 200 : 201)
+})
+
+// Superadmin — waitlist (canonical). Also keep /api/admin/waitlist as alias for backward compat.
+app.get('/api/superadmin/waitlist', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const { results } = await c.env.DB.prepare('SELECT id, email, restaurant_name as restaurantName, created_at as createdAt FROM waitlist ORDER BY created_at DESC LIMIT 500').all()
+  return c.json({ entries: results })
+})
+
+app.get('/api/admin/waitlist', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const { results } = await c.env.DB.prepare('SELECT id, email, restaurant_name as restaurantName, created_at as createdAt FROM waitlist ORDER BY created_at DESC LIMIT 500').all()
+  return c.json({ entries: results })
+})
+
+app.get('/api/superadmin/me', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  return c.json({ user: { id: (session.user as unknown as { id: string }).id, email: (session.user as unknown as { email: string }).email, name: (session.user as unknown as { name: string }).name, role } })
+})
+
+// Superadmin — users
+app.get('/api/superadmin/users', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const { results } = await c.env.DB.prepare("SELECT id, name, email, role, createdAt as createdAt FROM user ORDER BY createdAt DESC LIMIT 500").all()
+  return c.json({ users: results })
+})
+
+app.patch('/api/superadmin/users/:id', zValidator('json', z.object({ role: z.enum(['user', 'superadmin']) })), async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const targetId = c.req.param('id')
+  const { role: nextRole } = c.req.valid('json')
+  const selfId = (session.user as unknown as { id: string }).id
+  if (targetId === selfId && nextRole !== 'superadmin') return c.json({ error: "You can't demote yourself" }, 400)
+  const result = await c.env.DB.prepare("UPDATE user SET role = ? WHERE id = ?").bind(nextRole, targetId).run()
+  if (!result.meta.changes) return c.json({ error: 'User not found' }, 404)
+  const target = await c.env.DB.prepare("SELECT name, email FROM user WHERE id = ?").bind(targetId).first() as { name: string; email: string } | null
+  if (target) {
+    const mail = nextRole === 'superadmin' ? sendPromotionEmail(c.env, target.email, target.name) : sendDemotionEmail(c.env, target.email, target.name)
+    c.executionCtx.waitUntil(mail.then((r) => { if (!r.ok && !r.skipped) console.error("[email] role change failed", r.error) }))
+  }
+  return c.json({ ok: true })
+})
+
+app.delete('/api/superadmin/users/:id', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const targetId = c.req.param('id')
+  const selfId = (session.user as unknown as { id: string }).id
+  if (targetId === selfId) return c.json({ error: "You can't delete yourself" }, 400)
+  await c.env.DB.prepare("DELETE FROM user WHERE id = ?").bind(targetId).run()
+  return c.json({ ok: true })
+})
+
+// Superadmin — restaurants (all tenants)
+app.get('/api/superadmin/restaurants', async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const { results } = await c.env.DB.prepare('SELECT r.id, r.slug, r.name, r.description, r.address, r.hours, r.published, r.owner_id as ownerId, u.email as ownerEmail, r.created_at as createdAt FROM restaurants r LEFT JOIN user u ON u.id = r.owner_id ORDER BY r.created_at DESC LIMIT 500').all()
+  return c.json({ restaurants: results })
+})
+
+// Superadmin — broadcast (promotion / announcement) to waitlist or all users
+app.post('/api/superadmin/broadcast', zValidator('json', z.object({ audience: z.enum(['waitlist', 'users', 'all']), subject: z.string().min(1).max(120), html: z.string().min(1).max(10000), text: z.string().min(1).max(10000) })), async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const { audience, subject, html, text } = c.req.valid('json')
+  const recipients: string[] = []
+  if (audience === 'waitlist' || audience === 'all') {
+    const { results } = await c.env.DB.prepare('SELECT email FROM waitlist').all<{ email: string }>()
+    recipients.push(...results.map(r => r.email))
+  }
+  if (audience === 'users' || audience === 'all') {
+    const { results } = await c.env.DB.prepare('SELECT email FROM user').all<{ email: string }>()
+    recipients.push(...results.map(r => r.email))
+  }
+  const unique = [...new Set(recipients)]
+  if (!unique.length) return c.json({ ok: true, sent: 0 })
+  const { sendBroadcast } = await import('./email')
+  const result = await sendBroadcast(c.env, unique, subject, html, text)
+  if (!result.ok && !result.skipped) return c.json({ error: result.error }, 502)
+  if (result.skipped) return c.json({ ok: true, sent: 0, skipped: true, reason: result.error })
+  return c.json({ ok: true, sent: unique.length })
+})
+
+app.post('/api/superadmin/restaurants', zValidator('json', createRestaurantSchema), async (c) => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const input = c.req.valid('json')
+  const duplicate = await c.env.DB.prepare('SELECT id FROM restaurants WHERE slug = ? LIMIT 1').bind(input.slug).first()
+  if (duplicate) return c.json({ error: 'That slug is already in use' }, 409)
+  const id = crypto.randomUUID()
+  const ownerId = (session.user as unknown as { id: string }).id
+  await c.env.DB.prepare('INSERT INTO restaurants (id, owner_id, slug, name, description, address, hours) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(id, ownerId, input.slug, input.name, input.description, input.address, input.hours).run()
+  return c.json({ restaurant: { id, ...input, published: 0 } }, 201)
+})
 
 app.get('/sitemap.xml', async c => {
   const { results } = await c.env.DB.prepare('SELECT slug, updated_at FROM restaurants WHERE published = 1').all<{ slug: string; updated_at: string }>()
@@ -159,10 +321,10 @@ app.patch('/api/admin/items/:id', zValidator('json', menuItemSchema.partial()), 
   const fields = Object.entries(input)
   if (!fields.length) return c.json({ ok: true })
   const columnMap: Record<string, string> = { imageKey: 'image_key', mayContain: 'may_contain', dietaryTags: 'dietary_tags', halalStatus: 'halal_status', spiceLevel: 'spice_level', sortOrder: 'sort_order' }
-  const jsonFields = new Set(['allergens', 'mayContain', 'dietaryTags'])
+  const jsonFields: Record<string, true> = { allergens: true, mayContain: true, dietaryTags: true }
   const set = fields.map(([key]) => `${columnMap[key] ?? key} = ?`).join(', ')
   const archiveClause = input.status === 'DRAFT' ? ', archived = 0' : input.status === 'ARCHIVED' ? ', archived = 1' : ''
-  await c.env.DB.prepare(`UPDATE menu_items SET ${set}${archiveClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND restaurant_id = ?`).bind(...fields.map(([key, value]) => jsonFields.has(key) ? JSON.stringify(value ?? []) : value ?? null), c.req.param('id'), restaurant.id).run()
+  await c.env.DB.prepare(`UPDATE menu_items SET ${set}${archiveClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND restaurant_id = ?`).bind(...fields.map(([key, value]) => jsonFields[key] ? JSON.stringify(value ?? []) : value ?? null), c.req.param('id'), restaurant.id).run()
   return c.json({ ok: true })
 })
 
