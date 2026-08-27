@@ -1,0 +1,6 @@
+ALTER TABLE menu_items ADD COLUMN ingredients TEXT NOT NULL DEFAULT '';
+ALTER TABLE menu_items ADD COLUMN allergens TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE menu_items ADD COLUMN may_contain TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE menu_items ADD COLUMN dietary_tags TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE menu_items ADD COLUMN halal_status TEXT NOT NULL DEFAULT 'UNKNOWN';
+ALTER TABLE menu_items ADD COLUMN spice_level TEXT;

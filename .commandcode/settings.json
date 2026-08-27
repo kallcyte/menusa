@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(npm:*)",
+      "Shell(npx vite)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}\\n http://localhost:5173/)",
+      "Shell(curl -s http://localhost:5173/)",
+      "Shell(curl -s -o /dev/null -w home HTTP %{http_code}\\n http://localhost:5173/)",
+      "Shell(curl -s -o /dev/null -w slug HTTP %{http_code}\\n http://localhost:5173/salt-ember)",
+      "Shell(curl -s -o /dev/null -w manifest HTTP %{http_code} %{content_type}\\n http://localhost:5173/manifest.webmanifest)",
+      "Shell(curl -s -o /dev/null -w icon HTTP %{http_code} %{content_type}\\n http://localhost:5173/icon.svg)",
+      "Shell(curl -s -o /dev/null -w sw HTTP %{http_code}\\n http://localhost:5173/sw.js)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

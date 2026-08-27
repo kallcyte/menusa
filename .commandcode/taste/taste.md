@@ -1,0 +1,3 @@
+# Taste
+
+- Prefers improvement/recommendation work to be organized into a written plan document (e.g., `improvement-plan.md`) split into standalone, ship-able phases ordered by priority/blast-radius — explicitly requested this format — then reviews/approves the plan before code changes. They may then authorize completing all items in a selected batch/phase together (as with “let’s do it all”), rather than requiring approval for each subtask. Confidence: 0.88

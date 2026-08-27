@@ -1,0 +1,17 @@
+{
+  "name": "digimenu",
+  "short_name": "digimenu",
+  "description": "Beautiful menus for places worth finding.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f2ed",
+  "theme_color": "#f3f2ed",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+@reference "./styles.css";
+
+@layer components {
+  .menu-settings-panel { @apply max-w-[820px] pb-20 pt-[42px]; }
+  .menu-settings-intro { @apply mb-[30px] flex items-end justify-between; }
+  .menu-settings-intro h1 { @apply mt-2.5 text-[42px] leading-[0.96] tracking-[-0.07em]; }
+  .restaurant-settings-mark { @apply grid h-[54px] w-[54px] place-items-center rounded-[8px_8px_8px_2px] bg-[#e75f45] font-display text-xl text-white; }
+  .menu-settings-panel .settings-card { @apply rounded border-[#deded6] p-8; }
+  .menu-settings-card-heading { @apply flex items-start justify-between border-b border-[#edede7] pb-5; }
+  .menu-settings-card-heading h3 { @apply mt-2 text-[31px] font-sans font-medium leading-none tracking-[-0.07em]; }
+  .settings-status { @apply inline-flex items-center gap-1.5 rounded-full bg-[#ebf3e9] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.05em] text-[#4e7f5a]; }
+  .menu-settings-fields { @apply grid grid-cols-2 gap-4; }
+  .menu-settings-fields label { @apply mt-[22px] text-[11px] leading-[1.3]; }
+  .menu-settings-fields input { @apply mt-2 min-h-[45px]; }
+  .slug-input { @apply mt-2 flex min-h-[45px] items-center overflow-hidden rounded-md border border-[#d8d9d0] bg-[#fbfbf9] focus-within:border-[#e75f45] focus-within:ring-2 focus-within:ring-[#e75f45]/10; }
+  .slug-input > span { @apply flex h-full shrink-0 items-center border-r border-[#e5e5de] bg-[#f3f2ed] px-3 text-sm text-[#85877d]; }
+  .slug-input input { @apply mt-0 min-h-[43px] rounded-none border-0 bg-transparent px-3 focus:border-0 focus:ring-0; }
+  .menu-settings-panel > .settings-card > label { @apply mt-5 leading-[1.3]; }
+  .menu-settings-panel > .settings-card textarea { @apply mt-2; }
+  .settings-action-row { @apply mt-6 flex items-center justify-between gap-5 border-t border-[#edede7] pt-5; }
+  .settings-action-row .muted { @apply max-w-[330px] text-[11px] leading-[1.45]; }
+  .account-settings-panel { @apply max-w-[820px] pb-20 pt-[42px]; }
+  .account-settings-intro { @apply mb-[30px] flex items-end justify-between; }
+  .account-settings-intro h1 { @apply mt-2.5 text-[42px] leading-[0.96] tracking-[-0.07em]; }
+  .account-profile-mark { @apply grid h-[54px] w-[54px] place-items-center rounded-full bg-[#e75f45] font-display text-xl leading-none text-white; }
+  .account-settings-panel .settings-card { @apply rounded border-[#deded6] p-8; }
+  .account-settings-panel .settings-card h2,
+  .account-settings-panel .settings-card h3 { @apply m-[10px_0_7px] font-sans text-[31px] leading-none tracking-[-0.07em]; }
+  .account-settings-panel .settings-card > .muted { @apply max-w-[520px] leading-[1.5]; }
+  .account-fields { @apply grid grid-cols-2 gap-4; }
+  .account-fields label { @apply mt-[22px] text-[11px] leading-[1.3] tracking-[0.01em]; }
+  .account-fields input { @apply mt-2 min-h-[45px] leading-[1.2]; }
+  .account-settings-panel .modal-actions { @apply mt-[25px]; }
+  .account-settings-panel .account-password-card { @apply mt-4; }
+  .account-settings-panel .account-password-card label { @apply mt-[22px] leading-[1.3]; }
+  .account-settings-panel .account-password-card input { @apply mt-2 min-h-[45px]; }
+  .account-settings-panel .danger-card { @apply mt-[34px] border-[#efc9c1] bg-[#fffaf8] p-[25px_28px_7]; }
+  .account-settings-panel .danger-card label { @apply max-w-[330px] leading-[1.3]; }
+  .account-settings-panel .danger-card input { @apply mt-2 min-h-[45px]; }
+  .account-settings-panel .settings-card > .button,
+  .account-settings-panel .settings-card > .modal-actions { @apply mt-[25px]; }
+  .account-settings-panel .card-action-row { @apply mt-[25px] flex justify-end; }
+  .account-settings-panel .button { @apply min-h-[42px] leading-none; }
+  .account-settings-panel .settings-feedback { @apply rounded leading-[1.45]; }
+}
+
+@media (max-width: 700px) {
+  .menu-settings-panel { @apply pb-14 pt-7; }
+  .menu-settings-intro { @apply items-start gap-5; }
+  .menu-settings-intro h1 { @apply text-[35px]; }
+  .restaurant-settings-mark { @apply h-11 w-11 text-base; }
+  .menu-settings-panel .settings-card { @apply p-[23px_20px]; }
+  .menu-settings-card-heading h3 { @apply text-[28px]; }
+  .menu-settings-fields { @apply grid-cols-1 gap-0; }
+  .settings-action-row { @apply flex-col items-start gap-4; }
+  .account-settings-intro { @apply items-start gap-5; }
+  .account-settings-intro h1 { @apply text-[35px]; }
+  .account-settings-panel { @apply pb-14 pt-7; }
+  .account-profile-mark { @apply h-11 w-11 text-base; }
+  .account-settings-panel .settings-card { @apply p-[23px_20px]; }
+  .account-settings-panel .settings-card h2,
+  .account-settings-panel .settings-card h3 { @apply text-[28px]; }
+  .account-fields { @apply grid-cols-1 gap-0; }
+}
