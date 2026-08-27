@@ -154,8 +154,8 @@
   .demo-link { @apply mx-auto mt-[55px] flex items-center gap-1 text-[11px]; }
   .auth-error { @apply mt-[18px] bg-[#fbe8e4] p-2.5 text-[11px] text-[#b04b39]; }
 
-  .admin-shell { @apply flex min-h-screen gap-4 bg-[#f7f7f3] p-4; }
-  .admin-sidebar { @apply sticky top-4 flex h-[calc(100vh-32px)] w-[255px] shrink-0 flex-col overflow-hidden rounded-2xl bg-[#252723] p-5 pt-7 transition-all duration-300 ease-out; }
+  .admin-shell { @apply flex min-h-screen bg-[#f7f7f3]; }
+  .admin-sidebar { @apply sticky top-0 flex h-screen w-[255px] shrink-0 flex-col overflow-hidden bg-[#252723] p-5 pt-7 transition-all duration-300 ease-out; }
   .admin-sidebar[data-state="collapsed"] { @apply w-[72px] px-2; }
   .admin-sidebar-header { @apply flex items-center justify-between gap-1; }
   .admin-sidebar-content { @apply min-h-0 flex-1; }
