@@ -32,6 +32,7 @@ export function MenuManager({
   loadingInitial,
   loadError,
   onRetry,
+  variant = "workspace",
 }: {
   items: MenuItem[];
   onAdd: () => void;
@@ -48,6 +49,7 @@ export function MenuManager({
   loadingInitial: boolean;
   loadError: string | null;
   onRetry: () => void;
+  variant?: "workspace" | "superadmin";
 }) {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "DRAFT" | "PUBLISHED" | "ARCHIVED">("ALL");
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -57,20 +59,19 @@ export function MenuManager({
     { value: "PUBLISHED" as const, label: "Published" },
     { value: "ARCHIVED" as const, label: "Archived" },
   ];
-  const statusOf = (item: MenuItem) => item.status ?? "PUBLISHED";
-  const visibleItems = items.filter((item) => statusFilter === "ALL" || statusOf(item) === statusFilter);
   return (
     <div className="manager">
       <div className="manager-intro">
         <div>
           <p className="muted">
             {items.length} items ·{" "}
-            {loading ? "Syncing with D1..." : "Synced with workspace"}
+            {loading ? "Syncing with D1..." : variant === "superadmin" ? "Managed centrally" : "Synced with workspace"}
           </p>
-           <h1>Keep it fresh.</h1>
+           <h1>{variant === "superadmin" ? "Menu items" : "Keep it fresh."}</h1>
           <p className="intro-copy">
-            Add dishes, update prices, and make your menu yours. Changes go live
-            when you publish.
+            {variant === "superadmin"
+              ? "Review dishes, pricing and availability for this restaurant. Publishing makes changes live."
+              : "Add dishes, update prices, and make your menu yours. Changes go live when you publish."}
           </p>
         </div>
         <Button variant="default" onClick={onAdd}>

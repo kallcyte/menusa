@@ -154,10 +154,9 @@
   .demo-link { @apply mx-auto mt-[55px] flex items-center gap-1 text-[11px]; }
   .auth-error { @apply mt-[18px] bg-[#fbe8e4] p-2.5 text-[11px] text-[#b04b39]; }
 
-  .admin-shell { @apply flex min-h-screen bg-[#f7f7f3]; }
-  .admin-sidebar { @apply flex w-[255px] shrink-0 flex-col bg-[#252723] p-5 pt-7 text-white; }
-  .admin-sidebar[data-state="collapsed"] { @apply w-[88px] px-3; }
-  .admin-sidebar .logo { @apply text-white; }
+  .admin-shell { @apply flex min-h-screen gap-4 bg-[#f7f7f3] p-4; }
+  .admin-sidebar { @apply sticky top-4 flex h-[calc(100vh-32px)] w-[255px] shrink-0 flex-col overflow-hidden rounded-2xl bg-[#252723] p-5 pt-7 transition-all duration-300 ease-out; }
+  .admin-sidebar[data-state="collapsed"] { @apply w-[72px] px-2; }
   .admin-sidebar-header { @apply flex items-center justify-between gap-1; }
   .admin-sidebar-content { @apply min-h-0 flex-1; }
   .sidebar-trigger { @apply h-8 w-8 min-h-8 p-0 text-[#b8bbb0] hover:bg-[#3a3d36] hover:text-white; }
@@ -182,9 +181,8 @@
   .sidebar-bottom { @apply mt-auto; }
   .status-pill { @apply mb-5 inline-flex items-center gap-1.5 font-mono text-[9px] uppercase text-[#9dc7a7]; }
   .view-link { @apply flex items-center gap-1.5 bg-transparent text-[11px] text-[#b8bbb0]; }
-  .admin-main { @apply min-w-0 flex-1; }
-  .admin-header { @apply flex items-center justify-between border-b border-[#deded6] px-[6vw] pb-[31px] pt-[46px]; }
-  .admin-heading-group { @apply flex items-start gap-3 text-left; }
+  .admin-main { @apply min-w-0 flex-1 overflow-y-auto; }
+  .admin-header { @apply flex items-center justify-between border-b border-[#deded6] bg-white/80 px-[6vw] pb-[31px] pt-[46px] backdrop-blur-sm; }
   .admin-heading-copy { @apply text-left; }
   .admin-heading-title { @apply mt-1.5 text-[19px] font-medium tracking-[-0.04em] text-[#6c6f66]; }
   .admin-user { @apply flex items-center gap-2.5 border-0 bg-transparent text-xs text-[#242622]; }
@@ -487,7 +485,7 @@
   .superadmin-detail-tab.active { @apply border-[#242622] text-[#242622]; }
   .superadmin-manager-wrap { @apply flex flex-col gap-6; }
   .superadmin-manager-wrap .manager { @apply p-0 max-w-none; }
-  .superadmin-manager-wrap .manager-intro { @apply mb-0; }
+  .superadmin-manager-wrap .manager-intro { @apply mb-6; }
 
   .waitlist-panel--superadmin { @apply p-0; }
  
@@ -560,8 +558,8 @@
   .card-title-row h3 { @apply text-xl; }
   .card-title-row p { @apply text-[11px]; }
   .site-footer { @apply mx-5; }
+  .admin-shell { @apply gap-0 p-0; }
   .admin-sidebar { @apply hidden; }
-  .admin-header { @apply items-center px-5 py-6; }
   .admin-heading-title { @apply text-[17px]; }
   .mobile-back { @apply mr-3 block bg-transparent; }
   .admin-user span, .admin-user svg { @apply hidden; }

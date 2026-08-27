@@ -397,6 +397,7 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
       {tab === "menu" ? (
         <div className="superadmin-manager-wrap">
           <MenuManager
+            variant="superadmin"
             items={items}
             onAdd={() => setShowAdd(true)}
             onArchive={(id) => runAction(id, () => archiveSuperadminItem(restaurantId, id), "Item archived")}
