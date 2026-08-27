@@ -5,5 +5,5 @@ export const Route = createFileRoute('/superadmin')({ component: SuperadminRoute
 
 function SuperadminRoute() {
   const navigate = useNavigate()
-  return <Superadmin navigate={path => navigate({ to: path as never })} initialTab="waitlist" />
+  return <Superadmin navigate={path => navigate({ to: path as never })} initialTab="overview" />
 }

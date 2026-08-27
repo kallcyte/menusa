@@ -26,6 +26,7 @@ export function MenuManager({
   onDraftItem,
   onReorder,
   onPublish,
+  onUnpublish,
   published,
   loading,
   loadingInitial,
@@ -41,6 +42,7 @@ export function MenuManager({
   onDraftItem: (id: string) => Promise<boolean>;
   onReorder: (id: string, direction: -1 | 1) => Promise<boolean>;
   onPublish: () => Promise<boolean>;
+  onUnpublish?: () => Promise<boolean>;
   published: boolean;
   loading: boolean;
   loadingInitial: boolean;
@@ -91,10 +93,17 @@ export function MenuManager({
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => onPublish()}>
-          {published ? "Publish updates" : "Publish menu"}{" "}
-          <ArrowUpRight size={15} />
-        </Button>
+        <div className="publish-banner-actions">
+          {published && onUnpublish && (
+            <Button variant="outline" onClick={() => onUnpublish()} className="publish-banner-unpublish">
+              <EyeOff size={14} /> Unpublish
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => onPublish()}>
+            {published ? "Publish updates" : "Publish menu"}{" "}
+            <ArrowUpRight size={15} />
+          </Button>
+        </div>
       </div>
       {loadError && (
         <div className="publish-banner" role="alert">

@@ -11,14 +11,14 @@ const DialogClose = DialogPrimitive.Close
 const DialogPortal = DialogPrimitive.Portal
 
 const DialogOverlay = forwardRef<ElementRef<typeof DialogPrimitive.Overlay>, ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>>(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay ref={ref} className={cn('fixed inset-0 z-50 bg-[#1c1e1b88] data-[state=open]:animate-in data-[state=closed]:animate-out', className)} {...props} />
+  <DialogPrimitive.Overlay ref={ref} className={cn('fixed inset-0 z-50 bg-[#1c1e1b88] data-[state=open]:animate-[dialog-in_0.3s_ease-out] data-[state=closed]:animate-[dialog-out_0.2s_ease-in]', className)} {...props} />
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = forwardRef<ElementRef<typeof DialogPrimitive.Content>, ComponentPropsWithoutRef<typeof DialogPrimitive.Content>>(({ className, children, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
-    <DialogPrimitive.Content ref={ref} className={cn('fixed left-1/2 top-1/2 z-50 flex max-h-[92vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto border bg-[#f7f7f3] p-7 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out', className)} {...props}>
+    <DialogPrimitive.Content ref={ref} className={cn('fixed left-1/2 top-1/2 z-50 flex max-h-[92vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-2xl border bg-[#f7f7f3] p-0 shadow-2xl data-[state=open]:animate-[dialog-content-in_0.38s_cubic-bezier(0.16,1,0.3,1)_forwards] data-[state=closed]:animate-[dialog-content-out_0.2s_ease-in_forwards]', className)} {...props}>
       {children}
       <DialogPrimitive.Close className="absolute right-5 top-5 rounded-sm bg-transparent text-[#777970] opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#e75f45]/40 disabled:pointer-events-none">
         <X size={19} />

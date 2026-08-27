@@ -54,8 +54,9 @@ function fakeEnv(dbOverrides: Parameters<typeof fakeD1>[0] = {}) {
 }
 
 test('API responses carry hardening headers', async () => {
-  const res = await app.request('/api/health', undefined, fakeEnv())
-  assert.equal(res.status, 200)
+  // Use a real API route (invalid image key) — the 400 response still
+  // carries the hardening headers set by the /api/* middleware.
+  const res = await app.request('/api/images/other/pic.png', undefined, fakeEnv())
   assert.equal(res.headers.get('X-Content-Type-Options'), 'nosniff')
   assert.equal(res.headers.get('X-Frame-Options'), 'DENY')
   assert.equal(res.headers.get('Referrer-Policy'), 'strict-origin-when-cross-origin')

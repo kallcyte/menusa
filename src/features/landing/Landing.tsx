@@ -1,4 +1,6 @@
- import { useEffect, useMemo, useState } from "react";
+ import { useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
  import {
    ArrowUpRight,
    Check,
@@ -72,7 +74,7 @@ type Navigate = (path: string) => void;
  const faqs = [
    {
      q: "Is it free to try?",
-     a: "Yes — create your restaurant, add dishes and photos, and publish. Your menu is live at menusa.com/your-name as soon as you hit publish. No credit card needed to start.",
+     a: "Yes — create your restaurant, add dishes and photos, and publish. Your menu is live as soon as you hit publish. No credit card needed to start.",
    },
    {
      q: "Do I need a designer or developer?",
@@ -84,7 +86,7 @@ type Navigate = (path: string) => void;
    },
    {
      q: "Can I use my own web address?",
-     a: "Right now your menu lives at menusa.com/your-name — perfect for a QR code. Custom domains are coming soon, and your links will keep working.",
+     a: "Right now your menu gets its own link — perfect for a QR code. Custom domains are coming soon, and your links will keep working.",
    },
    {
      q: "What happens to my QR code when I update the menu?",
@@ -157,7 +159,7 @@ type Navigate = (path: string) => void;
              required
            />
          </div>
-         <Button type="submit" disabled={status === "loading"} className={isDark ? "waitlist-submit waitlist-submit--dark" : "waitlist-submit"}>
+         <Button type="submit" disabled={status === "loading"} className={isDark ? "waitlist-submit waitlist-submit--dark !rounded-full" : "waitlist-submit !rounded-full"}>
            {status === "loading" ? "Joining..." : "Join the waitlist"} <ArrowUpRight size={14} />
          </Button>
        </div>
@@ -173,8 +175,56 @@ export function Landing({ navigate }: { navigate: Navigate }) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const rootRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     document.title = "Menusa — Beautiful QR menus for independent restaurants";
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const ctx = gsap.context(() => {
+      gsap.from(".gsap-hero-eyebrow", { opacity: 0, y: 12, duration: 0.6, ease: "power2.out" });
+      gsap.from(".gsap-hero-title", { opacity: 0, y: 24, duration: 0.7, delay: 0.1, ease: "power3.out" });
+      gsap.from(".gsap-hero-copy", { opacity: 0, y: 16, duration: 0.6, delay: 0.2, ease: "power2.out" });
+      gsap.from(".gsap-hero-form", { opacity: 0, y: 16, duration: 0.6, delay: 0.3, ease: "power2.out" });
+      gsap.from(".gsap-hero-meta", { opacity: 0, duration: 0.5, delay: 0.4, ease: "power2.out" });
+      gsap.from(".gsap-hero-social", { opacity: 0, y: 8, duration: 0.5, delay: 0.5, ease: "power2.out" });
+      gsap.from(".gsap-phone", { opacity: 0, y: 32, scale: 0.97, duration: 0.8, delay: 0.2, ease: "power3.out" });
+      gsap.from(".gsap-qr", {
+        opacity: 0, scale: 0.9, y: 12, duration: 0.6, delay: 0.7, ease: "back.out(1.2)",
+        onComplete() {
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          gsap.to(".gsap-qr", { y: -6, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
+        },
+      });
+      gsap.from(".gsap-float-stat", { opacity: 0, y: 12, duration: 0.5, delay: 0.9, ease: "power2.out" });
+
+      // Scroll-triggered: use fromTo with autoAlpha so elements are visible before trigger
+      gsap.utils.toArray<HTMLElement>(".gsap-reveal").forEach((el) => {
+        gsap.fromTo(el,
+          { autoAlpha: 0, y: 28 },
+          { autoAlpha: 1, y: 0, duration: 0.7, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%" } }
+        );
+      });
+      gsap.utils.toArray<HTMLElement>(".gsap-stagger").forEach((container) => {
+        const children = container.querySelectorAll<HTMLElement>(":scope > *");
+        if (!children.length) return;
+        gsap.fromTo(children,
+          { autoAlpha: 0, y: 28 },
+          { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power3.out", scrollTrigger: { trigger: container, start: "top 88%" } }
+        );
+      });
+      gsap.utils.toArray<HTMLElement>(".gsap-step").forEach((el, i) => {
+        gsap.fromTo(el,
+          { autoAlpha: 0, x: i % 2 === 0 ? -20 : 20, y: 16 },
+          { autoAlpha: 1, x: 0, y: 0, duration: 0.7, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%" } }
+        );
+      });
+    }, rootRef);
+    return () => ctx.revert();
   }, []);
 
   const filtered = useMemo(() => {
@@ -189,7 +239,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
   const previewItems = filtered.slice(0, 4);
 
   return (
-    <main className="landing-shell">
+    <main ref={rootRef} className="landing-shell">
       {/* NAV */}
       <header className="site-header sticky top-0 z-30 bg-[#f3f2ed]/80 backdrop-blur supports-[backdrop-filter]:bg-[#f3f2ed]/70 border-b border-transparent">
         <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Menusa home">
@@ -215,28 +265,27 @@ export function Landing({ navigate }: { navigate: Navigate }) {
         <section className="landing-hero">
           <div className="landing-hero-grid">
             <div>
-              <div className="eyebrow !text-[#e75f45] !tracking-[0.08em]">
+              <div className="eyebrow gsap-hero-eyebrow !text-[#e75f45] !tracking-[0.08em]">
                 <span className="live-dot !bg-[#e75f45]" /> The easy QR menu for your restaurant
               </div>
-              <h1 className="hero-display !mb-5 !mt-5">
+              <h1 className="hero-display gsap-hero-title !mb-5 !mt-5">
                 Your menu,
                 <br />
                 <em>beautiful</em>
                 <br />
                 <span className="font-sans font-semibold tracking-[-0.08em] text-[#e75f45]">on every phone.</span>
               </h1>
-              <p className="hero-copy !max-w-[420px] !text-[17px]">
+              <p className="hero-copy gsap-hero-copy !max-w-[420px] !text-[17px]">
                 A beautiful menu for your restaurant. One link, one QR code — <span className="text-[#242622] font-medium">always up to date.</span>
               </p>
-              <WaitlistForm className="mt-6 max-w-[420px]" />
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-[#85877d]">
+              <WaitlistForm className="gsap-hero-form mt-6 max-w-[420px]" />
+              <div className="gsap-hero-meta mt-4 flex flex-wrap items-center gap-3 text-[11px] text-[#85877d]">
                 <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> No credit card</span>
                 <span className="h-3 w-px bg-[#d4d4cc]" />
                 <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> Ready in 2 minutes</span>
-                <span className="h-3 w-px bg-[#d4d4cc]" />
-                <span className="font-mono">your-name.menusa.com</span>
+
               </div>
-              <div className="mt-6 flex items-center gap-3 border-t border-[#d4d4cc] pt-5">
+              <div className="gsap-hero-social mt-6 flex items-center gap-3 border-t border-[#d4d4cc] pt-5">
                 <div className="flex -space-x-2">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-[#252723] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">S</span>
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e75f45] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">A</span>
@@ -249,7 +298,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
            </div>
 
           {/* Visual */}
-          <div className="landing-phone-wrap">
+          <div className="landing-phone-wrap gsap-phone">
             <div className="landing-phone">
               <div className="landing-phone-notch" />
               <div className="landing-phone-header">
@@ -275,7 +324,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
             </div>
 
             {/* Floating QR card */}
-            <div className="landing-qr-card">
+            <div className="landing-qr-card gsap-qr">
               <div className="landing-qr-box">
                 <QrCode size={28} />
                 <div className="landing-qr-grid" aria-hidden="true">
@@ -289,7 +338,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
               </div>
             </div>
 
-            <div className="landing-float-stat">
+            <div className="landing-float-stat gsap-float-stat">
               <Sparkles size={14} className="text-[#e75f45]" />
               <span className="text-xs font-medium text-[#242622]">Publish once</span>
               <span className="text-[11px] text-[#777970]">— every QR updates</span>
@@ -300,8 +349,8 @@ export function Landing({ navigate }: { navigate: Navigate }) {
 
        {/* LOGO / SOCIAL PROOF STRIP */}
        <section className="landing-strip">
-         <p className="section-kicker text-center">See it in action — try a live menu</p>
-         <div className="landing-strip-grid">
+         <p className="section-kicker gsap-reveal text-center">See it in action — try a live menu</p>
+         <div className="landing-strip-grid gsap-stagger">
            {Object.values(restaurants).map((r) => (
              <button
                key={r.slug}
@@ -323,19 +372,18 @@ export function Landing({ navigate }: { navigate: Navigate }) {
              <p className="font-display text-[20px] font-medium leading-none tracking-[-0.04em]">Your restaurant here<span className="text-[#e75f45]">.</span></p>
              <p className="mt-2 text-xs leading-[1.5] text-[#777970]">Get your link in 30 seconds. No design needed.</p>
              <Button onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })} size="sm" className="mt-4 w-fit">Join the waitlist</Button>
-             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.06em] text-[#a0a29a]">menusa.com/your-name</p>
            </div>
          </div>
        </section>
  
        {/* PROBLEM → SOLUTION */}
        <section className="landing-section">
-         <div className="landing-section-head">
+         <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">Why Menusa</p>
            <h2>Paper menus can&apos;t keep up.<br /><em>Yours can.</em></h2>
            <p>No more reprints or crossed-out prices. Just update and publish — done.</p>
          </div>
-         <div className="landing-problem-grid">
+         <div className="landing-problem-grid gsap-stagger">
            <div className="landing-problem-card">
              <span className="landing-problem-icon"><Clock3 size={18} /></span>
              <h3>Changed your prices?</h3>
@@ -359,11 +407,11 @@ export function Landing({ navigate }: { navigate: Navigate }) {
  
        {/* FEATURES */}
        <section id="features" className="landing-section landing-section--tinted">
-         <div className="landing-section-head">
+         <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">What you get</p>
            <h2>Everything you need.<br /><em>Nothing you don&apos;t.</em></h2>
          </div>
-         <div className="landing-feature-grid">
+         <div className="landing-feature-grid gsap-stagger">
            {features.map((f) => (
              <div key={f.kicker} className="landing-feature-card">
                <span className="landing-feature-icon"><f.icon size={18} /></span>
@@ -376,21 +424,21 @@ export function Landing({ navigate }: { navigate: Navigate }) {
        </section>
        {/* HOW IT WORKS */}
        <section id="how-it-works" className="landing-section">
-         <div className="landing-section-head">
+         <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">How it works</p>
            <h2>From kitchen to QR in <em>three steps</em>.</h2>
          </div>
          <div className="landing-steps">
-           <div className="landing-step">
+           <div className="landing-step gsap-step">
              <span className="landing-step-num">01</span>
              <div className="landing-step-card">
                <p className="landing-step-kicker">Set up your restaurant</p>
                <h3>Pick your link</h3>
-               <p>Add your name, description, address and hours. Your menu will live at <span className="font-mono text-[#242622]">menusa.com/your-name</span> — perfect for a QR code.</p>
+               <p>Add your name, description, address and hours. Your menu gets its own link — perfect for a QR code.</p>
                <div className="landing-step-meta"><MapPin size={12} /> 14 Harbour Lane · <Clock3 size={12} /> Open today</div>
              </div>
            </div>
-           <div className="landing-step">
+           <div className="landing-step gsap-step">
              <span className="landing-step-num">02</span>
              <div className="landing-step-card">
                <p className="landing-step-kicker">Add your dishes</p>
@@ -399,7 +447,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
                <div className="landing-step-meta"><Layers size={12} /> Drag to reorder · <ImageIcon size={12} /> Add your photos</div>
              </div>
            </div>
-           <div className="landing-step">
+           <div className="landing-step gsap-step">
              <span className="landing-step-num">03</span>
              <div className="landing-step-card landing-step-card--accent">
                <p className="landing-step-kicker">Share your QR code</p>
@@ -417,7 +465,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
  
        {/* LIVE DEMO */}
        <section id="demo" className="landing-section landing-section--tinted">
-         <div className="landing-demo-head">
+         <div className="landing-demo-head gsap-reveal">
            <div>
              <p className="section-kicker">Try it yourself</p>
              <h2>See what your guests <em>will see</em>.</h2>
@@ -428,7 +476,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
            </Button>
          </div>
  
-         <div className="landing-demo-controls">
+         <div className="landing-demo-controls gsap-reveal">
            <div className="search-wrap !w-full sm:!w-[220px] bg-white rounded-md border border-[#d4d4cc]">
              <Search className="search-prefix-icon" size={16} aria-hidden="true" />
              <Input
@@ -447,7 +495,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
            </div>
          </div>
  
-         <div className="bento-grid !mt-6">
+         <div className="bento-grid gsap-stagger !mt-6">
            {previewItems.map((item: MenuItem, index: number) => (
              <button
                key={item.id}
@@ -506,11 +554,11 @@ export function Landing({ navigate }: { navigate: Navigate }) {
 
       {/* FAQ */}
       <section id="faq" className="landing-section">
-        <div className="landing-section-head">
+        <div className="landing-section-head gsap-reveal">
           <p className="section-kicker">FAQ</p>
           <h2>Anything else?</h2>
         </div>
-        <div className="landing-faq">
+        <div className="landing-faq gsap-stagger">
           {faqs.map((f, i) => (
             <div key={f.q} className={`landing-faq-item ${openFaq === i ? "open" : ""}`}>
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="landing-faq-q">
@@ -524,10 +572,10 @@ export function Landing({ navigate }: { navigate: Navigate }) {
       </section>
         {/* WAITLIST CTA */}
        <section id="waitlist" className="landing-cta">
-         <div className="landing-cta-card">
+         <div className="landing-cta-card gsap-reveal">
            <p className="eyebrow !text-[#e78a77] !justify-center">Join the waitlist</p>
            <h2>Be first to get<br /><em>your menu live.</em></h2>
-           <p>Join the waitlist for early access. We&apos;ll help you set up your menu at <span className="font-mono text-white">menusa.com/your-name</span> — free.</p>
+           <p>Join the waitlist for early access. We&apos;ll help you set up — free.</p>
            <WaitlistForm variant="dark" className="mt-8 mx-auto w-full max-w-[520px]" />
            <div className="mt-6 flex flex-wrap justify-center gap-3">
              <Button variant="outline" onClick={() => navigate("/restaurant-1")} className="h-10 px-6 border-white/20 bg-transparent text-white hover:bg-white hover:text-[#252723] text-[13px]">See a demo menu</Button>

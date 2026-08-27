@@ -13,7 +13,7 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
-import { uploadMenuImage } from "../../api";
+import { uploadMenuImage, uploadSuperadminImage } from "../../api";
 import {
   allergenOptions,
   dietaryTagOptions,
@@ -38,11 +38,15 @@ export function AddItemModal({
   onAdd,
   onSave,
   initialItem,
+  restaurantId,
+  superadminRestaurantId,
 }: {
   onClose: () => void;
   onAdd?: (item: MenuItem) => void;
   onSave?: (item: MenuItem) => void;
   initialItem?: MenuItem;
+  restaurantId?: string;
+  superadminRestaurantId?: string;
 }) {
   const [name, setName] = useState(initialItem?.name ?? "");
   const [price, setPrice] = useState(initialItem?.price ?? "");
@@ -57,6 +61,7 @@ export function AddItemModal({
   const [file, setFile] = useState<File>();
   const [preview, setPreview] = useState(initialItem?.image ?? "");
   const [category, setCategory] = useState(initialItem?.category ?? "Small plates");
+  const [isSpecial, setIsSpecial] = useState(initialItem?.isSpecial ?? false);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const chooseFile = (next?: File) => {
@@ -76,7 +81,7 @@ export function AddItemModal({
     let imageKey: string | undefined = initialItem?.imageKey;
     if (file) {
       try {
-        imageKey = (await uploadMenuImage(file)).key || undefined;
+        imageKey = superadminRestaurantId ? (await uploadSuperadminImage(superadminRestaurantId, file)).key || undefined : (await uploadMenuImage(file)).key || undefined;
       } catch {
         setUploading(false);
         setError("Couldn't upload the photo. Check your connection and try again.");
@@ -101,6 +106,7 @@ export function AddItemModal({
        dietaryTags,
        halalStatus,
        spiceLevel: spiceLevel || undefined,
+      isSpecial,
      } satisfies MenuItem;
     if (onSave) await onSave(item);
     else if (onAdd) await onAdd(item);
@@ -181,6 +187,9 @@ export function AddItemModal({
           <datalist id="menu-tag-suggestions">
             {tagSuggestions.map((suggestion) => <option key={suggestion} value={suggestion} />)}
           </datalist>
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13 }}>
+          <input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Mark as special — shows in hero collage & Tonights specials
         </label>
         <div className="item-details-form">
           <div className="detail-section-heading">

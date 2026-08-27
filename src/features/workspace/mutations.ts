@@ -7,6 +7,8 @@ import {
   publishAdminMenu,
   restoreAdminItem,
   reorderAdminItem,
+  setRestaurantVisibility,
+  unpublishAdminMenu,
   updateAdminItem,
 } from "../../api";
 import type { MenuItem } from "../../data";

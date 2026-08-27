@@ -10,6 +10,7 @@ export const menuItemSchema = z.object({
   category: z.string().min(1),
   tag: z.string().max(32).optional(),
   imageKey: z.string().optional(),
+  isSpecial: z.boolean().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
   ingredients: z.string().max(500).optional(),
   allergens: z.array(z.enum(allergenValues)).max(allergenValues.length).optional(),
@@ -28,6 +29,11 @@ export const restaurantSettingsSchema = z.object({
   description: z.string().max(500).optional(),
   address: z.string().max(240).optional(),
   hours: z.string().max(240).optional(),
+  story: z.string().max(500).optional(),
+  phone: z.string().max(40).optional(),
+  instagram: z.string().max(64).optional(),
+  hoursDetail: z.string().max(240).optional(),
+  promo: z.object({ title: z.string().min(1).max(80), description: z.string().max(240).optional(), badge: z.string().max(32).optional(), validUntil: z.string().max(64).optional(), type: z.enum(['bogo','discount','package','custom']).optional() }).nullable().optional(),
 })
 
 export const createRestaurantSchema = z.object({
@@ -36,6 +42,11 @@ export const createRestaurantSchema = z.object({
    description: z.string().max(500),
    address: z.string().max(240),
    hours: z.string().max(240),
+   story: z.string().max(500).optional(),
+   phone: z.string().max(40).optional(),
+   instagram: z.string().max(64).optional(),
+   hoursDetail: z.string().max(240).optional(),
+   promo: z.object({ title: z.string().min(1).max(80), description: z.string().max(240).optional(), badge: z.string().max(32).optional(), validUntil: z.string().max(64).optional(), type: z.enum(['bogo','discount','package','custom']).optional() }).nullable().optional(),
  })
  
 export const waitlistSchema = z.object({

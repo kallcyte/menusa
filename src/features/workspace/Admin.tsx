@@ -29,7 +29,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "../../components/ui/sidebar";
-import { createAdminRestaurant, fetchAdminItems, fetchAdminRestaurants, fetchSession, logout } from "../../api";
+import { createAdminRestaurant, fetchAdminItems, fetchAdminRestaurants, fetchSession, fetchSuperadminMe, logout } from "../../api";
 import { useToast } from "../../components/ui/toast";
 import type { Navigate } from "../shared";
 import { errorMessage } from "../shared";
@@ -82,6 +82,16 @@ export function Admin({
     queryFn: fetchSession,
     staleTime: 30_000,
   });
+  const meQuery = useQuery({
+    queryKey: ["superadmin", "me"],
+    queryFn: fetchSuperadminMe,
+    staleTime: 30_000,
+    retry: false,
+  });
+  const isSuperadmin = meQuery.data?.user.role === "superadmin";
+  useEffect(() => {
+    if (meQuery.isSuccess && isSuperadmin) navigate("/superadmin");
+  }, [meQuery.isSuccess, isSuperadmin, navigate]);
   useEffect(() => {
     if (
       sessionQuery.isSuccess &&
@@ -95,6 +105,13 @@ export function Admin({
     sessionQuery.isSuccess,
     navigate,
   ]);
+  if (meQuery.isSuccess && isSuperadmin) {
+    return (
+      <div className="admin-shell" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
+        <p className="waitlist-loading">Redirecting to command center…</p>
+      </div>
+    );
+  }
   const restaurantsQuery = useQuery({
     queryKey: ["admin", "restaurants"],
     queryFn: fetchAdminRestaurants,
@@ -104,15 +121,7 @@ export function Admin({
   const selectedRestaurant = ownedRestaurants.find(
     (restaurant) => restaurant.id === restaurantId,
   ) ??
-    ownedRestaurants[0] ?? {
-      id: restaurantId,
-      slug: "restaurant-1",
-      name: "Salt & Ember",
-      description: "",
-      address: "",
-      hours: "",
-      published: 1,
-    };
+    ownedRestaurants[0] ?? null;
   useEffect(() => {
     if (
       ownedRestaurants[0] &&
@@ -121,18 +130,19 @@ export function Admin({
       setRestaurantId(ownedRestaurants[0].id);
   }, [ownedRestaurants, restaurantId]);
   useEffect(() => {
-    setPublished(selectedRestaurant.published === 1);
-  }, [selectedRestaurant.id, selectedRestaurant.published]);
+    if (selectedRestaurant) setPublished(selectedRestaurant.published === 1);
+  }, [selectedRestaurant?.id, selectedRestaurant?.published]);
   const itemsQuery = useQuery({
     queryKey: ["admin", "items", restaurantId],
     queryFn: () => fetchAdminItems(restaurantId),
+    enabled: Boolean(selectedRestaurant),
     staleTime: 30_000,
   });
   const items = itemsQuery.data ?? [];
   const deps: MutationDeps = {
     queryClient,
-    restaurantId: selectedRestaurant.id,
-    slug: selectedRestaurant.slug,
+    restaurantId: selectedRestaurant?.id ?? restaurantId,
+    slug: selectedRestaurant?.slug ?? "le-resto",
     published,
     setPublished,
     toast,
@@ -180,10 +190,10 @@ export function Admin({
               <DropdownMenuTrigger asChild>
                 <button className="admin-restaurant">
                   <div className="restaurant-avatar">
-                    {selectedRestaurant.name[0]}
+                    {selectedRestaurant?.name[0] ?? "?"}
                   </div>
                   <div>
-                    <strong>{selectedRestaurant.name}</strong>
+                    <strong>{selectedRestaurant?.name ?? "No restaurant"}</strong>
                     <span>
                       {ownedRestaurants.length} restaurant
                       {ownedRestaurants.length === 1 ? "" : "s"}
@@ -234,9 +244,11 @@ export function Admin({
             >
               <Settings2 size={18} /> <span className="sidebar-label">Restaurant settings</span>
             </SidebarMenuButton>
-            <SidebarMenuButton className="nav-item" aria-label="Superadmin" onClick={() => navigate("/superadmin")}>
-              <ShieldCheck size={18} /> <span className="sidebar-label">Superadmin</span>
-            </SidebarMenuButton>
+            {isSuperadmin && (
+              <SidebarMenuButton className="nav-item" aria-label="Superadmin" onClick={() => navigate("/superadmin")}>
+                <ShieldCheck size={18} /> <span className="sidebar-label">Superadmin</span>
+              </SidebarMenuButton>
+            )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="sidebar-bottom">
@@ -245,7 +257,7 @@ export function Admin({
           </div>
           <button
             className="view-link"
-            onClick={() => navigate(`/${selectedRestaurant.slug}`)}
+            onClick={() => selectedRestaurant && navigate(`/${selectedRestaurant.slug}`)}
           >
             <ArrowUpRight size={15} /> <span className="sidebar-label">View public menu</span>
           </button>
@@ -296,7 +308,13 @@ export function Admin({
             </DropdownMenu>
           </div>
         </header>
-        {tab === "menu" ? (
+        {!selectedRestaurant && tab !== "account" && tab !== "waitlist" ? (
+          <div className="waitlist-empty" style={{ margin: 24 }}>
+            <h3>No restaurant yet</h3>
+            <p>Create your first restaurant to start building your menu.</p>
+            <button className="button dark-button" onClick={() => setShowAddRestaurant(true)}>Create restaurant</button>
+          </div>
+        ) : tab === "menu" ? (
           <MenuManager
             items={items}
             onAdd={() => setShowAdd(true)}
@@ -307,6 +325,7 @@ export function Admin({
             onDraftItem={itemActions.draft}
             onReorder={reorderItem}
             onPublish={publishAll}
+            onUnpublish={async () => { if (!selectedRestaurant) return false; const { unpublishAdminMenu } = await import("../../api"); try { await unpublishAdminMenu(selectedRestaurant.id); setPublished(false); queryClient.invalidateQueries({ queryKey: ["admin", "restaurants"] }); queryClient.invalidateQueries({ queryKey: ["public-menu", selectedRestaurant.slug] }); toast({ title: "Menu unpublished", description: "Your public menu is now hidden." }); return true; } catch (err) { toast({ variant: "error", title: "Couldn't unpublish", description: errorMessage(err, "Please try again.") }); return false; } }}
             published={published}
             loading={itemsQuery.isFetching}
             loadingInitial={itemsQuery.isPending && !itemsQuery.error}
@@ -316,10 +335,10 @@ export function Admin({
         ) : tab === "waitlist" ? (
           <WaitlistPanel />
         ) : tab === "menu-settings" ? (
-           <MenuSettingsPanel
+           selectedRestaurant ? <MenuSettingsPanel
              restaurant={selectedRestaurant}
              onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin", "restaurants"] })}
-           />
+           /> : null
         ) : (
           <AccountSettingsPanel
             user={sessionQuery.data?.user}
