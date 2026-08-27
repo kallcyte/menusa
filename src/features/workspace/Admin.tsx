@@ -63,6 +63,7 @@ export function Admin({
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [published, setPublished] = useState(true);
   const [restaurantId, setRestaurantId] = useState("");
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   useEffect(() => {
     if (tab !== initialTab)
