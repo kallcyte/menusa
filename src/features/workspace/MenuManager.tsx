@@ -59,6 +59,8 @@ export function MenuManager({
     { value: "PUBLISHED" as const, label: "Published" },
     { value: "ARCHIVED" as const, label: "Archived" },
   ];
+  const statusOf = (item: MenuItem) => item.status ?? "PUBLISHED";
+  const visibleItems = items.filter((item) => statusFilter === "ALL" || statusOf(item) === statusFilter);
   return (
     <div className="manager">
       <div className="manager-intro">
