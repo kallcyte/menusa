@@ -208,51 +208,39 @@
   .publish-banner-unpublish { @apply border-[#eabbb0] bg-white text-[#b04b39] hover:bg-[#fff0ed]; }
   .publish-banner > div { @apply flex items-center gap-3; }
   .banner-icon { @apply grid h-7 w-7 place-items-center rounded-full bg-[#5a9a68] text-white; }
+  .banner-icon-hidden { @apply bg-[#c58a3d]; }
   .publish-banner strong { @apply text-[13px]; }
   .publish-banner p { @apply mt-0.5 text-[11px] text-[#758574]; }
   .menu-filter-row { @apply mb-3 flex items-center gap-1.5 overflow-x-auto; scrollbar-width: none; }
+  .menu-order-hint { @apply ml-auto inline-flex flex-none items-center gap-1 whitespace-nowrap text-[10px] text-[#85877d]; }
   .menu-filter { @apply inline-flex flex-none items-center gap-2 rounded-full border border-transparent bg-transparent px-3 py-2 text-[11px] text-[#85877d] transition-colors hover:border-[#d7d7cf] hover:text-[#242622]; }
   .menu-filter span { @apply rounded-full bg-[#e8e8e1] px-1.5 py-0.5 font-mono text-[9px] text-[#777970]; }
   .menu-filter.active { @apply border-[#242622] bg-[#242622] text-white; }
   .menu-filter.active span { @apply bg-white/15 text-white; }
   .item-table { @apply border-t border-[#cfd0c8]; }
-  .menu-list-shell { @apply overflow-hidden rounded border border-[#deded6] bg-white; }
-  .menu-item-row { @apply grid grid-cols-[minmax(0,1fr)_130px_70px_100px_minmax(150px,auto)] items-center gap-4 border-t border-[#e3e3dd] px-4 py-4; }
-  .table-head, .table-row { @apply grid grid-cols-[minmax(280px,2fr)_1fr_75px_120px_35px] items-center gap-4; }
+  .menu-list-shell { @apply overflow-x-auto rounded border border-[#deded6] bg-white; }
+  .menu-list-head { @apply grid min-w-[680px] grid-cols-[minmax(280px,1fr)_130px_80px_110px_120px] items-center gap-4 bg-[#f7f7f3] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.06em] text-[#85877d]; }
+  .menu-list-head span:nth-child(3) { @apply justify-self-end text-right; }
+  .menu-list-head span:nth-child(4) { @apply justify-self-start text-left; }
+  .menu-item-row { @apply grid min-w-[680px] grid-cols-[minmax(280px,1fr)_130px_80px_110px_120px] items-center gap-4 border-t border-[#e3e3dd] bg-white px-4 py-4; }
+  .menu-item-row { cursor: grab; }
+  .menu-item-row:active { cursor: grabbing; }
+  .menu-item-row.dragging { opacity: 0.55; }
+  .menu-item-row.drag-over { box-shadow: inset 0 3px 0 #e75f45; }
+  .table-row { @apply grid grid-cols-[minmax(280px,2fr)_1fr_75px_120px_35px] items-center gap-4; }
   .table-head { @apply p-[13px_14px] font-mono text-[10px] uppercase text-[#85877d]; }
-  .table-row { @apply min-h-[78px] border-t border-[#e3e3dd] px-3.5 py-2.5 text-xs; }
   .item-cell { @apply flex items-center gap-3; }
   .item-cell img { @apply h-[52px] w-[52px] shrink-0 rounded object-cover; }
   .item-cell strong { @apply block font-display text-[17px] font-medium leading-tight; }
-  .item-cell span { @apply mt-1 block max-w-[330px] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-snug text-[#85877d]; }
-  .menu-item-copy { @apply min-w-0 overflow-hidden; }
-  .menu-item-name-row { @apply flex min-w-0 items-center gap-2; }
-  .menu-item-name-row strong { @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap; }
-  .menu-item-tag { @apply mt-0 rounded-full bg-[#fbe8e4] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.04em] text-[#b04b39]; }
-  .menu-item-category { @apply rounded-full bg-[#f3f2ed] px-2.5 py-1.5 text-[11px]; }
-  .menu-item-price { @apply text-[13px] font-medium tabular-nums; }
-  .settings-panel { @apply max-w-[700px] p-[46px_6vw]; }
-  .settings-card { @apply border border-[#e3e3dd] bg-white p-[30px]; }
-  .settings-card h2 { @apply mb-2 mt-2 text-[33px] tracking-[-0.07em]; }
-  .settings-card h3 { @apply font-display text-[23px] font-medium tracking-[-0.04em]; }
-  label { @apply mt-[22px] block text-[11px] text-[#5d6058]; }
-  .field-hint { @apply ml-1 font-mono text-[9px] uppercase tracking-[0.04em] text-[#a0a29a]; }
-  textarea { @apply min-h-[82px] resize-y; }
-  .form-split { @apply grid grid-cols-2 gap-[15px]; }
-  .modal-actions { @apply mt-[26px] flex justify-end gap-2; }
-  .modal .modal-actions { @apply flex-row; }
-  .item-details-form { @apply mt-7 border-t border-[#deded6] pt-5; }
-  .detail-section-heading { @apply flex items-baseline justify-between gap-3; }
-  .detail-helper { @apply text-[10px] text-[#85877d]; }
-  .item-details-form label input,
-  .item-details-form label select { @apply mt-2; }
-  .detail-field-group { @apply mt-5; }
-  .detail-field-label { @apply text-[11px] text-[#5d6058]; }
-  .checkbox-grid { @apply mt-2 grid grid-cols-2 gap-x-4 gap-y-2 rounded border border-[#e3e3dd] bg-white p-3; }
-  .checkbox-option { @apply flex items-center gap-2; }
-  .checkbox-option label { @apply m-0 cursor-pointer text-[11px] leading-[1.25] text-[#5d6058]; }
-  .item-detail-dialog { @apply max-w-[540px] overflow-hidden p-0; }
-  .item-detail-image-wrap { @apply h-[230px] shrink-0 bg-[#d7d7cf]; }
+  .menu-item-category { @apply justify-self-start rounded-full bg-[#f3f2ed] px-2.5 py-1.5 text-[11px]; }
+  .menu-item-price { @apply justify-self-end text-right text-[13px] font-medium tabular-nums; }
+  .more-button { @apply bg-transparent text-[#92948c]; }
+  .menu-item-action { @apply inline-flex items-center justify-center gap-1 rounded-full border border-[#e3e3dd] bg-white px-2.5 py-1.5 text-[11px] font-medium tracking-normal text-[#555850] shadow-sm transition-colors hover:border-[#d4d4cc] hover:bg-[#f7f7f3] hover:text-[#242622]; }
+  .menu-item-actions { @apply flex w-full items-center justify-end gap-2; }
+  .publish-item-action { @apply border-[#d1e4cf] bg-[#ebf3e9] text-[#4e7f5a] hover:border-[#b8d4b8] hover:bg-[#d9ead9] hover:text-[#3d6b45]; }
+  .draft-item-action { @apply border-[#ead9b9] bg-[#fff5e7] text-[#7d5d2d] hover:border-[#dcc79a] hover:bg-[#ffe9c7] hover:text-[#6b4f26]; }
+  .menu-item-action:has(svg):hover svg { @apply scale-110; }
+  .menu-item-status { @apply justify-self-start inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]; }
   .item-detail-image { @apply h-full w-full object-cover; }
   .item-detail-header { @apply p-[25px_28px_0]; }
   .item-detail-header h2 { @apply mt-2 text-[34px] leading-none tracking-[-0.07em]; }
@@ -469,6 +457,30 @@
   .superadmin-manager-wrap { @apply flex flex-col gap-6; }
   .superadmin-manager-wrap .manager { @apply p-0 max-w-none; }
   .superadmin-manager-wrap .manager-intro { @apply mb-6; }
+  .superadmin-settings-panel { @apply w-full max-w-[820px] pb-6; }
+  .superadmin-settings-card { @apply overflow-hidden p-0; }
+  .superadmin-settings-card > .menu-settings-card-heading { @apply flex items-center justify-between gap-4 border-b border-[#edede7] p-6; }
+  .superadmin-settings-card > .menu-settings-card-heading h3 { @apply mt-2 text-[27px] font-semibold leading-none tracking-[-0.06em] text-[#242622]; }
+  .superadmin-settings-card > .menu-settings-fields,
+  .superadmin-settings-card > label { @apply mx-6; }
+  .superadmin-settings-card > .menu-settings-fields { @apply mt-6 grid grid-cols-2 gap-4; }
+  .superadmin-settings-card > label { @apply mt-4 grid gap-2 text-[11px] font-medium text-[#5d6058]; }
+  .superadmin-settings-card input,
+  .superadmin-settings-card textarea,
+  .superadmin-settings-card select { @apply min-w-0; }
+  .superadmin-settings-card textarea { @apply min-h-[96px] resize-y; }
+  .superadmin-settings-card .field-hint { @apply ml-1 font-normal text-[#a0a29a]; }
+  .settings-toggle { @apply inline-flex items-center gap-2 rounded-full border border-[#d8d9d0] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#777970] transition-colors hover:border-[#c7c8bf]; }
+  .settings-toggle.is-on { @apply border-[#c4dbc3] bg-[#ebf3e9] text-[#4e7f5a]; }
+  .settings-toggle-knob { @apply relative h-4 w-7 rounded-full bg-[#d8d9d0] transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-3 after:w-3 after:rounded-full after:bg-white after:shadow-sm after:transition-transform; }
+  .settings-toggle.is-on .settings-toggle-knob { @apply bg-[#6aa373] after:translate-x-3; }
+  .superadmin-promo-card { @apply mx-6 mt-6 rounded-lg border border-[#e3e3dd] bg-[#fafaf8] p-5; }
+  .superadmin-promo-header { @apply flex items-start justify-between gap-4; }
+  .superadmin-promo-header .muted { @apply mt-1 text-[11px]; }
+  .superadmin-promo-fields { @apply mt-5 grid gap-4; }
+  .superadmin-promo-fields > label { @apply grid gap-2 text-[11px] font-medium text-[#5d6058]; }
+  .superadmin-promo-fields .menu-settings-fields { @apply mt-0 grid grid-cols-2 gap-4; }
+  .superadmin-settings-card > .settings-action-row { @apply mt-6 flex justify-end border-t border-[#edede7] px-6 pt-5 pb-6; }
 
   .waitlist-panel--superadmin { @apply p-0; }
  
@@ -559,6 +571,13 @@
   .menu-item-actions { @apply col-start-2 row-start-3 flex-wrap; }
   .menu-item-actions .menu-item-action { @apply px-1.5 text-[10px]; }
   .item-cell { @apply col-span-full; }
+  .superadmin-settings-card > .menu-settings-fields,
+  .superadmin-promo-fields .menu-settings-fields { @apply grid-cols-1; }
+  .superadmin-settings-card > .menu-settings-card-heading,
+  .superadmin-settings-card > .menu-settings-fields,
+  .superadmin-settings-card > label,
+  .superadmin-promo-card { @apply mx-5; }
+  .superadmin-settings-card > .settings-action-row { @apply px-5; }
   .table-category, .table-price, .table-row > span:nth-child(4) { @apply text-[11px]; }
   .table-row > span:nth-child(4) { @apply justify-self-end; }
   .settings-panel { @apply px-5 py-7; }

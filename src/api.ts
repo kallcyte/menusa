@@ -28,9 +28,13 @@ export function shouldFallbackToLocalData(err: unknown) {
   return isNetworkError(err) || (err instanceof ApiError && err.status >= 500)
 }
 
-function imageFor(item: { image?: string; imageKey?: string | null; name: string }, admin = false) {
+function imageFor(item: { image?: string; imageKey?: string | null; name: string }, admin = false, superadmin = false) {
   if (item.image) return item.image
-  if (item.imageKey) return admin ? `/api/admin/images/${encodeURIComponent(item.imageKey)}` : `/api/images/${encodeURIComponent(item.imageKey)}`
+  if (item.imageKey) {
+    if (superadmin) return `/api/superadmin/images/${encodeURIComponent(item.imageKey)}`
+    if (admin) return `/api/admin/images/${encodeURIComponent(item.imageKey)}`
+    return `/api/images/${encodeURIComponent(item.imageKey)}`
+  }
   return menuItems.find(fixture => fixture.name === item.name)?.image ?? ''
 }
 
@@ -86,10 +90,11 @@ export function signUp(email: string, password: string, name: string) {
 export async function fetchPublicMenu(slug: string): Promise<Restaurant> {
   const fallback = restaurants[slug] ?? restaurants['restaurant-1']
   try {
-    const result = await request<{ restaurant: Partial<Omit<Restaurant, 'items'>>; items: Array<MenuItem & { imageKey?: string }> }>(`/api/menu/${encodeURIComponent(slug)}`)
+    const result = await request<{ restaurant: Partial<Omit<Restaurant, 'items'>> & { menuVisible?: boolean }; items: Array<MenuItem & { imageKey?: string }> }>(`/api/menu/${encodeURIComponent(slug)}`)
     return {
       ...fallback,
       ...result.restaurant,
+      menuVisible: result.restaurant.menuVisible !== false,
       accent: result.restaurant.accent ?? fallback.accent,
       address: result.restaurant.address ?? fallback.address,
       hours: result.restaurant.hours ?? fallback.hours,
@@ -190,8 +195,9 @@ export function updateSuperadminRestaurant(id: string, input: Pick<SuperadminRes
 export function deleteSuperadminRestaurant(id: string) {
   return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
-export function fetchSuperadminItems(restaurantId: string) {
-  return request<{ items: MenuItem[] }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`)
+export async function fetchSuperadminItems(restaurantId: string) {
+  const result = await request<{ items: Array<MenuItem & { imageKey?: string }> }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`)
+  return { items: result.items.map(item => ({ ...item, image: imageFor(item, false, true) })) }
 }
 export function createSuperadminItem(restaurantId: string, item: MenuItem) {
   return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, allergens: item.allergens, mayContain: item.mayContain, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })

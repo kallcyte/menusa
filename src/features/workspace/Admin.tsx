@@ -38,6 +38,7 @@ import {
   makeItemActions,
   makePublishAll,
   makeReorderItem,
+  makeReorderTo,
   makeRunItemAction,
   makeUpdateItem,
   type MutationDeps,
@@ -105,13 +106,6 @@ export function Admin({
     sessionQuery.isSuccess,
     navigate,
   ]);
-  if (meQuery.isSuccess && isSuperadmin) {
-    return (
-      <div className="admin-shell" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
-        <p className="waitlist-loading">Redirecting to command center…</p>
-      </div>
-    );
-  }
   const restaurantsQuery = useQuery({
     queryKey: ["admin", "restaurants"],
     queryFn: fetchAdminRestaurants,
@@ -152,6 +146,7 @@ export function Admin({
   const addItem = makeAddItem(deps);
   const updateItem = makeUpdateItem(deps);
   const publishAll = makePublishAll(deps);
+  const reorderTo = makeReorderTo(deps);
   const reorderItem = makeReorderItem(deps);
   const createRestaurant = async (input: Parameters<typeof createAdminRestaurant>[0]) => {
     try {
@@ -177,6 +172,13 @@ export function Admin({
     queryClient.removeQueries({ queryKey: ["admin"] });
     navigate("/login");
   };
+  if (meQuery.isSuccess && isSuperadmin) {
+    return (
+      <div className="admin-shell" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
+        <p className="waitlist-loading">Redirecting to command center…</p>
+      </div>
+    );
+  }
   return (
     <SidebarProvider className="admin-shell">
       <Sidebar className="admin-sidebar">
@@ -322,9 +324,8 @@ export function Admin({
             onArchive={itemActions.archive}
             onRestore={itemActions.restore}
             onUpdate={updateItem}
-            onPublishItem={itemActions.publish}
-            onDraftItem={itemActions.draft}
             onReorder={reorderItem}
+            onReorderTo={reorderTo}
             onPublish={publishAll}
             onUnpublish={async () => { if (!selectedRestaurant) return false; const { unpublishAdminMenu } = await import("../../api"); try { await unpublishAdminMenu(selectedRestaurant.id); setPublished(false); queryClient.invalidateQueries({ queryKey: ["admin", "restaurants"] }); queryClient.invalidateQueries({ queryKey: ["public-menu", selectedRestaurant.slug] }); toast({ title: "Menu unpublished", description: "Your public menu is now hidden." }); return true; } catch (err) { toast({ variant: "error", title: "Couldn't unpublish", description: errorMessage(err, "Please try again.") }); return false; } }}
             published={published}

@@ -337,10 +337,7 @@ app.post('/api/superadmin/restaurants/:id/publish', async (c) => {
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
-  await c.env.DB.batch([
-    c.env.DB.prepare('UPDATE menu_items SET status = \'PUBLISHED\', archived = 0, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ? AND status = \'DRAFT\' AND archived = 0').bind(id),
-    c.env.DB.prepare('UPDATE restaurants SET published = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(id),
-  ])
+  await c.env.DB.prepare('UPDATE restaurants SET published = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(id).run()
   return c.json({ ok: true })
 })
 
@@ -361,6 +358,17 @@ app.post('/api/superadmin/restaurants/:id/visibility', zValidator('json', z.obje
   const { published } = c.req.valid('json')
   await c.env.DB.prepare('UPDATE restaurants SET published = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(published ? 1 : 0, id).run()
   return c.json({ ok: true, published: published ? 1 : 0 })
+})
+
+app.get('/api/superadmin/images/*', async c => {
+  const { session, role } = await getSessionAndRole(c)
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
+  if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
+  const key = decodeURIComponent(c.req.path.replace('/api/superadmin/images/', ''))
+  if (!key || !key.startsWith('menu/')) return c.json({ error: 'Invalid image key' }, 400)
+  const object = await c.env.MENU_IMAGES.get(key)
+  if (!object) return c.notFound()
+  return imageResponse(object)
 })
 
 app.post('/api/superadmin/restaurants/:id/images', async (c) => {
@@ -393,12 +401,13 @@ app.get('/sitemap.xml', async c => {
 
 app.get('/api/menu/:slug', async c => {
   const slug = c.req.param('slug')
-  const restaurant = await c.env.DB.prepare('SELECT id, slug, name, description, address, hours, story, phone, instagram, hours_detail as hoursDetail, promo FROM restaurants WHERE slug = ? AND published = 1').bind(slug).first<{ id: string; slug: string; name: string; description: string; address: string; hours: string; story: string; phone: string; instagram: string; hoursDetail: string; promo: string }>()
+  const restaurant = await c.env.DB.prepare('SELECT id, slug, name, description, address, hours, story, phone, instagram, hours_detail as hoursDetail, promo, published FROM restaurants WHERE slug = ?').bind(slug).first<{ id: string; slug: string; name: string; description: string; address: string; hours: string; story: string; phone: string; instagram: string; hoursDetail: string; promo: string; published: number }>()
   if (!restaurant) return c.json({ error: 'Menu not found' }, 404)
-  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, status, ingredients, allergens, may_contain as mayContain, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? AND status = 'PUBLISHED' AND archived = 0 ORDER BY sort_order ASC").bind(restaurant.id).all()
-  const { id: _id, ...publicRestaurant } = restaurant
+  const { id: _id, published, ...publicRestaurant } = restaurant
   const promo = (() => { try { const v = (restaurant as Record<string, unknown>).promo ? JSON.parse((restaurant as Record<string, unknown>).promo as string) : null; return v && v.title ? v : null; } catch { return null; } })()
-  return c.json({ restaurant: { ...publicRestaurant, promo }, items: results.map(item => normalizeMenuItem(item as Record<string, unknown>)) })
+  if (published === 0) return c.json({ restaurant: { ...publicRestaurant, promo, menuVisible: false }, items: [] })
+  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, status, ingredients, allergens, may_contain as mayContain, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? AND status = 'PUBLISHED' AND archived = 0 ORDER BY sort_order ASC").bind(restaurant.id).all()
+  return c.json({ restaurant: { ...publicRestaurant, promo, menuVisible: true }, items: results.map(item => normalizeMenuItem(item as Record<string, unknown>)) })
 })
 
 app.get('/api/images/*', async c => {
@@ -486,10 +495,7 @@ app.delete('/api/admin/items/:id', async c => {
 app.post('/api/admin/publish', async c => {
   const restaurant = await getOwnedRestaurant(c)
   if (!restaurant) return c.json({ error: 'Unauthorized' }, 401)
-  await c.env.DB.batch([
-    c.env.DB.prepare('UPDATE menu_items SET status = \'PUBLISHED\', archived = 0, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ? AND status = \'DRAFT\' AND archived = 0').bind(restaurant.id),
-    c.env.DB.prepare('UPDATE restaurants SET published = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(restaurant.id),
-  ])
+  await c.env.DB.prepare('UPDATE restaurants SET published = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(restaurant.id).run()
   return c.json({ ok: true })
 })
 

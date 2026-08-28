@@ -321,6 +321,7 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
   const [tab, setTab] = useState<"menu" | "settings">("menu")
   const [showAdd, setShowAdd] = useState(false)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
+  const [visibility, setVisibility] = useState<boolean | null>(null)
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -329,7 +330,10 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
 
   const restaurant = restaurantQuery.data?.restaurant
   const items = itemsQuery.data ?? []
-
+  const isPublished = visibility ?? Boolean(restaurant?.published)
+  useEffect(() => {
+    if (restaurant) setVisibility(Boolean(restaurant.published))
+  }, [restaurant?.published])
   const handleAdd = async (item: MenuItem) => {
     try {
       await createSuperadminItem(restaurantId, item)
@@ -359,6 +363,29 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
   const runAction = async (id: string, action: () => Promise<unknown>, successMsg: string) => {
     try { await action(); await queryClient.invalidateQueries({ queryKey: ["superadmin", "items", restaurantId] }); toast({ title: successMsg }); return true } catch (err) { toast({ variant: "error", title: "Action failed", description: errorMessage(err, "Please try again.") }); return false }
   }
+  const reorderTo = async (id: string, targetId: string) => {
+    const sourceIndex = items.findIndex(item => item.id === id)
+    const targetIndex = items.findIndex(item => item.id === targetId)
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return true
+    const reordered = [...items]
+    ;[reordered[sourceIndex], reordered[targetIndex]] = [reordered[targetIndex], reordered[sourceIndex]]
+    return runAction(id, async () => {
+      await Promise.all(reordered.map((item, itemIndex) =>
+        reorderSuperadminItem(restaurantId, item.id, itemIndex),
+      ))
+    }, "Order updated")
+  }
+  const updateMenuVisibility = async (next: boolean, action: () => Promise<unknown>, successMsg: string) => {
+    const ok = await runAction(next ? "publish" : "unpublish", action, successMsg)
+    if (ok) {
+      setVisibility(next)
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["superadmin", "restaurant", restaurantId] }),
+        queryClient.invalidateQueries({ queryKey: ["superadmin", "restaurants"] }),
+      ])
+    }
+    return ok
+  }
 
   if (restaurantQuery.isPending) return <div className="waitlist-loading">Loading restaurant…</div>
   if (restaurantQuery.isError || !restaurant) return <div className="waitlist-error-panel">{errorMessage(restaurantQuery.error, "Couldn't load restaurant.")}</div>
@@ -377,7 +404,7 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
           <span className="superadmin-detail-slug">/{restaurant.slug}</span>
           <span className="superadmin-detail-dot">·</span>
           <span className="superadmin-detail-owner">{(restaurant as unknown as { ownerEmail?: string | null }).ownerEmail ?? restaurant.ownerId.slice(0, 8)}</span>
-          <span className={restaurant.published ? "badge badge--accent" : "badge"}>{restaurant.published ? "Published" : "Draft"}</span>
+          <span className={isPublished ? "badge badge--accent" : "badge"}>{isPublished ? "Published" : "Draft"}</span>
           <a className="superadmin-detail-link" href={`/${restaurant.slug}`} target="_blank" rel="noreferrer">View public menu <ArrowLeft size={12} style={{ transform: "rotate(135deg)" }} /></a>
         </div>
       </div>
@@ -386,7 +413,7 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
         <div className="superadmin-detail-stat"><span className="superadmin-detail-stat-value">{items.length}</span><span className="superadmin-detail-stat-label">Items</span></div>
         <div className="superadmin-detail-stat"><span className="superadmin-detail-stat-value">{publishedCount}</span><span className="superadmin-detail-stat-label">Published</span></div>
         <div className="superadmin-detail-stat"><span className="superadmin-detail-stat-value">{draftCount}</span><span className="superadmin-detail-stat-label">Drafts</span></div>
-        <div className="superadmin-detail-stat"><span className="superadmin-detail-stat-value">{restaurant.published ? "Live" : "Hidden"}</span><span className="superadmin-detail-stat-label">Visibility</span></div>
+        <div className="superadmin-detail-stat"><span className="superadmin-detail-stat-value">{isPublished ? "Live" : "Hidden"}</span><span className="superadmin-detail-stat-label">Visibility</span></div>
       </div>
 
       <div className="superadmin-detail-tabs" role="tablist">
@@ -405,21 +432,22 @@ function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: st
             onUpdate={handleUpdate}
             onPublishItem={(id) => runAction(id, () => publishSuperadminItem(restaurantId, id), "Item published")}
             onDraftItem={(id) => runAction(id, () => draftSuperadminItem(restaurantId, id), "Item drafted")}
+            onReorderTo={reorderTo}
             onReorder={async (id, dir) => {
-              const idx = items.findIndex(i => i.id === id)
-              const swapIdx = idx + dir
-              if (swapIdx < 0 || swapIdx >= items.length) return false
-              const a = items[idx], b = items[swapIdx]
-              const aOrder = (a as unknown as { sortOrder?: number }).sortOrder ?? idx
-              const bOrder = (b as unknown as { sortOrder?: number }).sortOrder ?? swapIdx
+              const index = items.findIndex(i => i.id === id)
+              const target = index + dir
+              if (index < 0 || target < 0 || target >= items.length) return false
+              const reordered = [...items]
+              ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
               return runAction(id, async () => {
-                await reorderSuperadminItem(restaurantId, a.id, bOrder)
-                await reorderSuperadminItem(restaurantId, b.id, aOrder)
+                await Promise.all(reordered.map((item, itemIndex) =>
+                  reorderSuperadminItem(restaurantId, item.id, itemIndex),
+                ))
               }, "Order updated")
             }}
-            onPublish={() => runAction("publish", () => publishSuperadminMenu(restaurantId), "Menu published")}
-            onUnpublish={() => runAction("unpublish", () => unpublishSuperadminMenu(restaurantId), "Menu unpublished")}
-            published={Boolean(restaurant.published)}
+            onPublish={() => updateMenuVisibility(true, () => publishSuperadminMenu(restaurantId), "Menu published")}
+            onUnpublish={() => updateMenuVisibility(false, () => unpublishSuperadminMenu(restaurantId), "Menu unpublished")}
+            published={isPublished}
             loading={itemsQuery.isFetching}
             loadingInitial={itemsQuery.isPending}
             loadError={itemsQuery.error ? errorMessage(itemsQuery.error, "") : null}
@@ -452,7 +480,6 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
   const [promoValidUntil, setPromoValidUntil] = useState(restaurant.promo?.validUntil ?? "")
   const [promoType, setPromoType] = useState(restaurant.promo?.type ?? "custom")
   const [promoEnabled, setPromoEnabled] = useState(Boolean(restaurant.promo))
-  const [published, setPublished] = useState(Boolean(restaurant.published))
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -461,7 +488,6 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
       const normalizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
       const promo = promoEnabled && promoTitle.trim() ? { title: promoTitle.trim(), description: promoDescription.trim() || undefined, badge: promoBadge.trim() || undefined, validUntil: promoValidUntil.trim() || undefined, type: promoType as "bogo" | "discount" | "package" | "custom" } : null
       await updateSuperadminRestaurant(restaurant.id, { slug: normalizedSlug, name: name.trim(), description: description.trim(), address: address.trim(), hours: hours.trim(), story: story.trim(), phone: phone.trim(), instagram: instagram.trim().replace(/^@/, ""), hoursDetail: hoursDetail.trim(), promo })
-      if (published !== Boolean(restaurant.published)) await setSuperadminVisibility(restaurant.id, published)
       setSlug(normalizedSlug)
       toast({ title: "Restaurant updated" })
       onSaved()
@@ -471,11 +497,10 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
   }
 
   return (
-    <div className="settings-panel" style={{ padding: 0, maxWidth: 700 }}>
-      <Card className="settings-card">
+    <div className="superadmin-settings-panel">
+      <Card className="superadmin-settings-card">
         <div className="menu-settings-card-heading">
           <div><p className="section-kicker">Public identity</p><h3>{restaurant.name}</h3></div>
-          <span className="settings-status" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, margin: 0 }}><input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} /> Published</label></span>
         </div>
         <div className="menu-settings-fields">
           <label>Restaurant name<Input value={name} onChange={(e) => setName(e.target.value)} /></label>
@@ -490,13 +515,22 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
           <label>Instagram<Input value={instagram} onChange={(e) => setInstagram(e.target.value)} maxLength={64} placeholder="saltandember" /></label>
         </div>
         <label>Hours detail <span className="field-hint">Find Us card</span><Input value={hoursDetail} onChange={(e) => setHoursDetail(e.target.value)} maxLength={240} placeholder="Mon–Thu 5–11pm · Fri–Sat 5–11:30pm" /></label>
-        <div className="settings-card" style={{ marginTop: 20, background: "#fafaf8" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div><p className="section-kicker">Promo banner</p><p className="muted" style={{ marginTop: 4 }}>Appears above the hero.</p></div>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, margin: 0 }}><input type="checkbox" checked={promoEnabled} onChange={(e) => setPromoEnabled(e.target.checked)} /> Enabled</label>
+        <div className="superadmin-promo-card">
+          <div className="superadmin-promo-header">
+            <div><p className="section-kicker">Promo banner</p><p className="muted">Appears above the hero.</p></div>
+            <button
+              type="button"
+              className={`settings-toggle ${promoEnabled ? "is-on" : ""}`}
+              role="switch"
+              aria-checked={promoEnabled}
+              onClick={() => setPromoEnabled((enabled) => !enabled)}
+            >
+              <span className="settings-toggle-knob" />
+              <span>{promoEnabled ? "Enabled" : "Disabled"}</span>
+            </button>
           </div>
           {promoEnabled && (
-            <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+            <div className="superadmin-promo-fields">
               <label>Title<Input value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} maxLength={80} placeholder="Feast for two — £48" /></label>
               <label>Description<Input value={promoDescription} onChange={(e) => setPromoDescription(e.target.value)} maxLength={240} /></label>
               <div className="menu-settings-fields">
@@ -507,7 +541,7 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
             </div>
           )}
         </div>
-        <div className="settings-action-row" style={{ marginTop: 16 }}>
+        <div className="settings-action-row">
           <Button variant="default" onClick={save} disabled={saving || !slug.trim()}>{saving ? "Saving..." : "Save settings"}</Button>
         </div>
       </Card>

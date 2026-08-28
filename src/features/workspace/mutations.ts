@@ -109,15 +109,14 @@ export function makePublishAll(deps: MutationDeps): () => Promise<boolean> {
   return async () => {
     const previousItems = deps.queryClient.getQueryData<MenuItem[]>(itemsKey(deps.restaurantId));
     const previousPublished = deps.published;
-    applyItems(deps, (current) => current.map((item) => item.status === "DRAFT" || !item.status ? { ...item, status: "PUBLISHED" } : item));
     deps.setPublished(true);
     try {
       await publishAdminMenu(deps.restaurantId);
       await deps.queryClient.invalidateQueries({ queryKey: ["public-menu", deps.slug] });
-      deps.toast({ title: "Menu published", description: "Your latest changes are live." });
+      deps.toast({ title: "Menu visible", description: "Visitors can now view your menu." });
       return true;
     } catch (err) {
-      return rollback(deps, previousItems, previousPublished, "Publish failed", err, "Your menu wasn't published.");
+      return rollback(deps, previousItems, previousPublished, "Couldn't show menu", err, "Your menu visibility was not changed.");
     }
   };
 }
@@ -131,6 +130,25 @@ export function makeReorderItem(deps: MutationDeps): (id: string, direction: -1 
     if (index < 0 || target < 0 || target >= current.length) return true;
     const reordered = [...current];
     [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    applyItems(deps, () => reordered);
+    try {
+      await Promise.all(reordered.map((item, itemIndex) => reorderAdminItem(item.id, itemIndex, deps.restaurantId)));
+      await deps.queryClient.invalidateQueries({ queryKey: ["public-menu", deps.slug] });
+      return true;
+    } catch (err) {
+      return rollback(deps, previousItems, deps.published, "Order not saved", err, "The previous order was restored.");
+    }
+  };
+}
+export function makeReorderTo(deps: MutationDeps): (id: string, targetId: string) => Promise<boolean> {
+  return async (id, targetId) => {
+    const previousItems = deps.queryClient.getQueryData<MenuItem[]>(itemsKey(deps.restaurantId));
+    const current = previousItems ?? [];
+    const sourceIndex = current.findIndex(item => item.id === id);
+    const targetIndex = current.findIndex(item => item.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return true;
+    const reordered = [...current];
+    [reordered[sourceIndex], reordered[targetIndex]] = [reordered[targetIndex], reordered[sourceIndex]];
     applyItems(deps, () => reordered);
     try {
       await Promise.all(reordered.map((item, itemIndex) => reorderAdminItem(item.id, itemIndex, deps.restaurantId)));

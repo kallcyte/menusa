@@ -10,6 +10,7 @@ const buttonVariants = cva('inline-flex min-h-10 items-center justify-center gap
       outline: 'border border-[#d2d2c9] bg-transparent text-[#242622] hover:bg-[#ecece6]',
       ghost: 'bg-transparent text-[#777970] hover:bg-[#ecece6] hover:text-[#242622]',
       danger: 'border border-[#eabbb0] bg-[#fff0ed] text-[#b04b39] hover:bg-[#fbe1dc]',
+      subtle: 'border border-[#e3e3dd] bg-white text-[#555850] shadow-sm hover:border-[#d4d4cc] hover:bg-[#f7f7f3] hover:text-[#242622]',
     },
     size: { default: 'text-sm', sm: 'min-h-9 px-3 text-xs', icon: 'h-10 w-10 p-0' },
   },

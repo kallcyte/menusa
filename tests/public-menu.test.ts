@@ -3,7 +3,7 @@ import test from 'node:test'
 import app from '../server/index'
 
 function fakeD1Public(opts: {
-  restaurant?: { id: string; slug: string; name: string; description: string; address: string; hours: string } | null
+  restaurant?: { id: string; slug: string; name: string; description: string; address: string; hours: string; published?: number } | null
   items?: Array<Record<string, unknown>>
   sitemapRows?: Array<{ slug: string; updated_at: string }>
 } = {}) {
@@ -20,7 +20,7 @@ function fakeD1Public(opts: {
     },
     first: async () => {
       if (sql.includes('SELECT count FROM rate_limits')) return counters.get(values[0] as string) ?? null
-      if (sql.includes('FROM restaurants WHERE slug = ? AND published = 1')) {
+      if (sql.includes('FROM restaurants WHERE slug = ?')) {
         if (opts.restaurant === null) return null
         if (opts.restaurant) return opts.restaurant
         return null
@@ -62,10 +62,13 @@ test('GET /api/menu/:slug returns 404 when restaurant not found', async () => {
   assert.match(body.error, /not found/i)
 })
 
-test('GET /api/menu/:slug returns 404 for unpublished restaurant', async () => {
-  const env = fakeEnvPublic({ restaurant: null })
+test('GET /api/menu/:slug returns a hidden state for unpublished restaurants', async () => {
+  const env = fakeEnvPublic({ restaurant: { id: 'r1', slug: 'draft-restaurant', name: 'Draft Restaurant', description: '', address: '', hours: '', published: 0 } })
   const res = await app.request('/api/menu/draft-restaurant', undefined, env)
-  assert.equal(res.status, 404)
+  assert.equal(res.status, 200)
+  const body = await res.json() as { restaurant: Record<string, unknown>; items: Array<Record<string, unknown>> }
+  assert.equal(body.restaurant.menuVisible, false)
+  assert.deepEqual(body.items, [])
 })
 
 test('GET /api/menu/:slug returns restaurant and published items', async () => {

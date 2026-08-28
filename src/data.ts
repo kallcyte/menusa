@@ -6,7 +6,7 @@ export type SpiceLevel = 'MILD' | 'MEDIUM' | 'HOT'
 export type PromoType = 'bogo' | 'discount' | 'package' | 'custom'
 export type Promo = { title: string; description?: string; badge?: string; validUntil?: string; type?: PromoType }
 export type MenuItem = { id: string; name: string; description: string; price: string; category: string; image: string; imageKey?: string; tag?: string; accent?: string; status?: MenuItemStatus; ingredients?: string; allergens?: Allergen[]; mayContain?: Allergen[]; dietaryTags?: DietaryTag[]; halalStatus?: HalalStatus; spiceLevel?: SpiceLevel; isSpecial?: boolean }
-export type Restaurant = { id?: string; slug: string; name: string; description: string; address: string; hours: string; accent: string; items: MenuItem[]; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: Promo | null }
+export type Restaurant = { id?: string; slug: string; name: string; description: string; address: string; hours: string; accent: string; items: MenuItem[]; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: Promo | null; menuVisible?: boolean }
 
 export const categories = ['All', 'Small plates', 'Mains', 'From the sea', 'Drinks']
 export const tagSuggestions = ["Chef's pick", 'Plant-based', 'Bright & fresh', 'Seasonal', 'Staff favorite', 'New']

@@ -157,6 +157,25 @@ export function PublicMenu({
       </main>
     );
   }
+  if (restaurant.menuVisible === false) {
+    return (
+      <main className="public-shell">
+        <header className="site-header">
+          <Logo dark />
+        </header>
+        <div className="public-status public-hidden-menu" role="status">
+          <span className="banner-icon banner-icon-hidden" aria-hidden="true">
+            <Clock3 size={18} />
+          </span>
+          <h2>We’re still crafting this menu.</h2>
+          <p>
+            {restaurant.name} is putting the finishing touches on something delicious.
+            Check back soon — it’ll be worth the wait.
+          </p>
+        </div>
+      </main>
+    );
+  }
   const filtered = restaurant.items.filter(
     (item) =>
       (active === "All" || item.category === active) &&
