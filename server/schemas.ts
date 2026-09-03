@@ -34,6 +34,14 @@ export const restaurantSettingsSchema = z.object({
   instagram: z.string().max(64).optional(),
   hoursDetail: z.string().max(240).optional(),
   promo: z.object({ title: z.string().min(1).max(80), description: z.string().max(240).optional(), badge: z.string().max(32).optional(), validUntil: z.string().max(64).optional(), type: z.enum(['bogo','discount','package','custom']).optional() }).nullable().optional(),
+  currency: z.enum(['IDR','USD','EUR','SGD','MYR','JPY']).optional(),
+  halalCertificationAuthority: z.enum(['BPJPH', 'MUI']).nullable().optional(),
+  halalCertificationNumber: z.string().max(80).optional(),
+  halalCertificateImageKey: z.string().max(240).optional(),
+  bannerType: z.enum(['none','promo','announcement']).optional(),
+  bannerPromoId: z.string().nullable().optional(),
+  bannerAnnouncement: z.string().max(500).nullable().optional(),
+  bannerDismissible: z.boolean().optional(),
 })
 
 export const createRestaurantSchema = z.object({
@@ -47,6 +55,9 @@ export const createRestaurantSchema = z.object({
    instagram: z.string().max(64).optional(),
    hoursDetail: z.string().max(240).optional(),
    promo: z.object({ title: z.string().min(1).max(80), description: z.string().max(240).optional(), badge: z.string().max(32).optional(), validUntil: z.string().max(64).optional(), type: z.enum(['bogo','discount','package','custom']).optional() }).nullable().optional(),
+   halalCertificationAuthority: z.enum(['BPJPH', 'MUI']).nullable().optional(),
+   halalCertificationNumber: z.string().max(80).optional(),
+   halalCertificateImageKey: z.string().max(240).optional(),
  })
  
 export const waitlistSchema = z.object({

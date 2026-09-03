@@ -12,15 +12,33 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SuperadminRouteImport } from './routes/superadmin'
 import { Route as AccountSettingsRouteImport } from './routes/account.settings'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAccountSettingsRouteImport } from './routes/admin.account-settings'
+import { Route as AdminCampaignsRouteImport } from './routes/admin.campaigns'
 import { Route as AdminMenuSettingsRouteImport } from './routes/admin.menu-settings'
+import { Route as AdminPromosRouteImport } from './routes/admin.promos'
+import { Route as AdminQrRouteImport } from './routes/admin.qr'
+import { Route as AdminRestaurantsRouteImport } from './routes/admin.restaurants'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminWaitlistRouteImport } from './routes/admin.waitlist'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppAccountSettingsRouteImport } from './routes/app.account-settings'
+import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
+import { Route as AppMenuSettingsRouteImport } from './routes/app.menu-settings'
+import { Route as AppPromosRouteImport } from './routes/app.promos'
+import { Route as AppQrRouteImport } from './routes/app.qr'
+import { Route as AppRestaurantsRouteImport } from './routes/app.restaurants'
+import { Route as AppUsersRouteImport } from './routes/app.users'
+import { Route as AppWaitlistRouteImport } from './routes/app.waitlist'
 import { Route as SuperadminBroadcastRouteImport } from './routes/superadmin.broadcast'
 import { Route as SuperadminRestaurantsRouteImport } from './routes/superadmin.restaurants'
 import { Route as SuperadminUsersRouteImport } from './routes/superadmin.users'
 import { Route as SuperadminWaitlistRouteImport } from './routes/superadmin.waitlist'
+import { Route as AdminRestaurantSlugRouteImport } from './routes/admin.restaurant.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,6 +53,11 @@ const SlugRoute = SlugRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -52,15 +75,95 @@ const AccountSettingsRoute = AccountSettingsRouteImport.update({
   path: '/account/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAccountSettingsRoute = AdminAccountSettingsRouteImport.update({
+  id: '/account-settings',
+  path: '/account-settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMenuSettingsRoute = AdminMenuSettingsRouteImport.update({
   id: '/menu-settings',
   path: '/menu-settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPromosRoute = AdminPromosRouteImport.update({
+  id: '/promos',
+  path: '/promos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminQrRoute = AdminQrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRestaurantsRoute = AdminRestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminWaitlistRoute = AdminWaitlistRouteImport.update({
   id: '/waitlist',
   path: '/waitlist',
   getParentRoute: () => AdminRoute,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccountSettingsRoute = AppAccountSettingsRouteImport.update({
+  id: '/account-settings',
+  path: '/account-settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCampaignsRoute = AppCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMenuSettingsRoute = AppMenuSettingsRouteImport.update({
+  id: '/menu-settings',
+  path: '/menu-settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPromosRoute = AppPromosRouteImport.update({
+  id: '/promos',
+  path: '/promos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQrRoute = AppQrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRestaurantsRoute = AppRestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWaitlistRoute = AppWaitlistRouteImport.update({
+  id: '/waitlist',
+  path: '/waitlist',
+  getParentRoute: () => AppRoute,
 } as any)
 const SuperadminBroadcastRoute = SuperadminBroadcastRouteImport.update({
   id: '/broadcast',
@@ -82,49 +185,106 @@ const SuperadminWaitlistRoute = SuperadminWaitlistRouteImport.update({
   path: '/waitlist',
   getParentRoute: () => SuperadminRoute,
 } as any)
+const AdminRestaurantSlugRoute = AdminRestaurantSlugRouteImport.update({
+  id: '/restaurant/$slug',
+  path: '/restaurant/$slug',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
+  '/admin/account-settings': typeof AdminAccountSettingsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/promos': typeof AdminPromosRoute
+  '/admin/qr': typeof AdminQrRoute
+  '/admin/restaurants': typeof AdminRestaurantsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
+  '/app/account-settings': typeof AppAccountSettingsRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/menu-settings': typeof AppMenuSettingsRoute
+  '/app/promos': typeof AppPromosRoute
+  '/app/qr': typeof AppQrRoute
+  '/app/restaurants': typeof AppRestaurantsRoute
+  '/app/users': typeof AppUsersRoute
+  '/app/waitlist': typeof AppWaitlistRoute
   '/superadmin/broadcast': typeof SuperadminBroadcastRoute
   '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
   '/superadmin/users': typeof SuperadminUsersRoute
   '/superadmin/waitlist': typeof SuperadminWaitlistRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/restaurant/$slug': typeof AdminRestaurantSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
-  '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
+  '/admin/account-settings': typeof AdminAccountSettingsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/promos': typeof AdminPromosRoute
+  '/admin/qr': typeof AdminQrRoute
+  '/admin/restaurants': typeof AdminRestaurantsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
+  '/app/account-settings': typeof AppAccountSettingsRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/menu-settings': typeof AppMenuSettingsRoute
+  '/app/promos': typeof AppPromosRoute
+  '/app/qr': typeof AppQrRoute
+  '/app/restaurants': typeof AppRestaurantsRoute
+  '/app/users': typeof AppUsersRoute
+  '/app/waitlist': typeof AppWaitlistRoute
   '/superadmin/broadcast': typeof SuperadminBroadcastRoute
   '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
   '/superadmin/users': typeof SuperadminUsersRoute
   '/superadmin/waitlist': typeof SuperadminWaitlistRoute
+  '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
+  '/admin/restaurant/$slug': typeof AdminRestaurantSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/superadmin': typeof SuperadminRouteWithChildren
   '/account/settings': typeof AccountSettingsRoute
+  '/admin/account-settings': typeof AdminAccountSettingsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/menu-settings': typeof AdminMenuSettingsRoute
+  '/admin/promos': typeof AdminPromosRoute
+  '/admin/qr': typeof AdminQrRoute
+  '/admin/restaurants': typeof AdminRestaurantsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
+  '/app/account-settings': typeof AppAccountSettingsRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/menu-settings': typeof AppMenuSettingsRoute
+  '/app/promos': typeof AppPromosRoute
+  '/app/qr': typeof AppQrRoute
+  '/app/restaurants': typeof AppRestaurantsRoute
+  '/app/users': typeof AppUsersRoute
+  '/app/waitlist': typeof AppWaitlistRoute
   '/superadmin/broadcast': typeof SuperadminBroadcastRoute
   '/superadmin/restaurants': typeof SuperadminRestaurantsRoute
   '/superadmin/users': typeof SuperadminUsersRoute
   '/superadmin/waitlist': typeof SuperadminWaitlistRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/restaurant/$slug': typeof AdminRestaurantSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,49 +292,102 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/admin'
+    | '/app'
     | '/login'
     | '/superadmin'
     | '/account/settings'
+    | '/admin/account-settings'
+    | '/admin/campaigns'
     | '/admin/menu-settings'
+    | '/admin/promos'
+    | '/admin/qr'
+    | '/admin/restaurants'
+    | '/admin/users'
     | '/admin/waitlist'
+    | '/app/account-settings'
+    | '/app/campaigns'
+    | '/app/menu-settings'
+    | '/app/promos'
+    | '/app/qr'
+    | '/app/restaurants'
+    | '/app/users'
+    | '/app/waitlist'
     | '/superadmin/broadcast'
     | '/superadmin/restaurants'
     | '/superadmin/users'
     | '/superadmin/waitlist'
+    | '/admin/'
+    | '/app/'
+    | '/admin/restaurant/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$slug'
-    | '/admin'
     | '/login'
     | '/superadmin'
     | '/account/settings'
+    | '/admin/account-settings'
+    | '/admin/campaigns'
     | '/admin/menu-settings'
+    | '/admin/promos'
+    | '/admin/qr'
+    | '/admin/restaurants'
+    | '/admin/users'
     | '/admin/waitlist'
+    | '/app/account-settings'
+    | '/app/campaigns'
+    | '/app/menu-settings'
+    | '/app/promos'
+    | '/app/qr'
+    | '/app/restaurants'
+    | '/app/users'
+    | '/app/waitlist'
     | '/superadmin/broadcast'
     | '/superadmin/restaurants'
     | '/superadmin/users'
     | '/superadmin/waitlist'
+    | '/admin'
+    | '/app'
+    | '/admin/restaurant/$slug'
   id:
     | '__root__'
     | '/'
     | '/$slug'
     | '/admin'
+    | '/app'
     | '/login'
     | '/superadmin'
     | '/account/settings'
+    | '/admin/account-settings'
+    | '/admin/campaigns'
     | '/admin/menu-settings'
+    | '/admin/promos'
+    | '/admin/qr'
+    | '/admin/restaurants'
+    | '/admin/users'
     | '/admin/waitlist'
+    | '/app/account-settings'
+    | '/app/campaigns'
+    | '/app/menu-settings'
+    | '/app/promos'
+    | '/app/qr'
+    | '/app/restaurants'
+    | '/app/users'
+    | '/app/waitlist'
     | '/superadmin/broadcast'
     | '/superadmin/restaurants'
     | '/superadmin/users'
     | '/superadmin/waitlist'
+    | '/admin/'
+    | '/app/'
+    | '/admin/restaurant/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   SuperadminRoute: typeof SuperadminRouteWithChildren
   AccountSettingsRoute: typeof AccountSettingsRoute
@@ -203,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -224,11 +444,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/account-settings': {
+      id: '/admin/account-settings'
+      path: '/account-settings'
+      fullPath: '/admin/account-settings'
+      preLoaderRoute: typeof AdminAccountSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/menu-settings': {
       id: '/admin/menu-settings'
       path: '/menu-settings'
       fullPath: '/admin/menu-settings'
       preLoaderRoute: typeof AdminMenuSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/promos': {
+      id: '/admin/promos'
+      path: '/promos'
+      fullPath: '/admin/promos'
+      preLoaderRoute: typeof AdminPromosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/qr': {
+      id: '/admin/qr'
+      path: '/qr'
+      fullPath: '/admin/qr'
+      preLoaderRoute: typeof AdminQrRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/restaurants': {
+      id: '/admin/restaurants'
+      path: '/restaurants'
+      fullPath: '/admin/restaurants'
+      preLoaderRoute: typeof AdminRestaurantsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/waitlist': {
@@ -237,6 +506,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/waitlist'
       preLoaderRoute: typeof AdminWaitlistRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/account-settings': {
+      id: '/app/account-settings'
+      path: '/account-settings'
+      fullPath: '/app/account-settings'
+      preLoaderRoute: typeof AppAccountSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/campaigns': {
+      id: '/app/campaigns'
+      path: '/campaigns'
+      fullPath: '/app/campaigns'
+      preLoaderRoute: typeof AppCampaignsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/menu-settings': {
+      id: '/app/menu-settings'
+      path: '/menu-settings'
+      fullPath: '/app/menu-settings'
+      preLoaderRoute: typeof AppMenuSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/promos': {
+      id: '/app/promos'
+      path: '/promos'
+      fullPath: '/app/promos'
+      preLoaderRoute: typeof AppPromosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/qr': {
+      id: '/app/qr'
+      path: '/qr'
+      fullPath: '/app/qr'
+      preLoaderRoute: typeof AppQrRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/restaurants': {
+      id: '/app/restaurants'
+      path: '/restaurants'
+      fullPath: '/app/restaurants'
+      preLoaderRoute: typeof AppRestaurantsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/users': {
+      id: '/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/waitlist': {
+      id: '/app/waitlist'
+      path: '/waitlist'
+      fullPath: '/app/waitlist'
+      preLoaderRoute: typeof AppWaitlistRouteImport
+      parentRoute: typeof AppRoute
     }
     '/superadmin/broadcast': {
       id: '/superadmin/broadcast'
@@ -266,20 +598,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuperadminWaitlistRouteImport
       parentRoute: typeof SuperadminRoute
     }
+    '/admin/restaurant/$slug': {
+      id: '/admin/restaurant/$slug'
+      path: '/restaurant/$slug'
+      fullPath: '/admin/restaurant/$slug'
+      preLoaderRoute: typeof AdminRestaurantSlugRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAccountSettingsRoute: typeof AdminAccountSettingsRoute
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminMenuSettingsRoute: typeof AdminMenuSettingsRoute
+  AdminPromosRoute: typeof AdminPromosRoute
+  AdminQrRoute: typeof AdminQrRoute
+  AdminRestaurantsRoute: typeof AdminRestaurantsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminWaitlistRoute: typeof AdminWaitlistRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminRestaurantSlugRoute: typeof AdminRestaurantSlugRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAccountSettingsRoute: AdminAccountSettingsRoute,
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminMenuSettingsRoute: AdminMenuSettingsRoute,
+  AdminPromosRoute: AdminPromosRoute,
+  AdminQrRoute: AdminQrRoute,
+  AdminRestaurantsRoute: AdminRestaurantsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminWaitlistRoute: AdminWaitlistRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminRestaurantSlugRoute: AdminRestaurantSlugRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AppRouteChildren {
+  AppAccountSettingsRoute: typeof AppAccountSettingsRoute
+  AppCampaignsRoute: typeof AppCampaignsRoute
+  AppMenuSettingsRoute: typeof AppMenuSettingsRoute
+  AppPromosRoute: typeof AppPromosRoute
+  AppQrRoute: typeof AppQrRoute
+  AppRestaurantsRoute: typeof AppRestaurantsRoute
+  AppUsersRoute: typeof AppUsersRoute
+  AppWaitlistRoute: typeof AppWaitlistRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAccountSettingsRoute: AppAccountSettingsRoute,
+  AppCampaignsRoute: AppCampaignsRoute,
+  AppMenuSettingsRoute: AppMenuSettingsRoute,
+  AppPromosRoute: AppPromosRoute,
+  AppQrRoute: AppQrRoute,
+  AppRestaurantsRoute: AppRestaurantsRoute,
+  AppUsersRoute: AppUsersRoute,
+  AppWaitlistRoute: AppWaitlistRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface SuperadminRouteChildren {
   SuperadminBroadcastRoute: typeof SuperadminBroadcastRoute
@@ -303,6 +684,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   SuperadminRoute: SuperadminRouteWithChildren,
   AccountSettingsRoute: AccountSettingsRoute,

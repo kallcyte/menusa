@@ -17,12 +17,10 @@ import { uploadMenuImage, uploadSuperadminImage } from "../../api";
 import {
   allergenOptions,
   dietaryTagOptions,
-  halalStatusOptions,
   spiceLevelOptions,
   tagSuggestions,
   type Allergen,
   type DietaryTag,
-  type HalalStatus,
   type MenuItem,
   type SpiceLevel,
 } from "../../data";
@@ -56,10 +54,9 @@ export function AddItemModal({
   const [allergens, setAllergens] = useState<Allergen[]>(initialItem?.allergens ?? []);
   const [mayContain, setMayContain] = useState<Allergen[]>(initialItem?.mayContain ?? []);
   const [dietaryTags, setDietaryTags] = useState<DietaryTag[]>(initialItem?.dietaryTags ?? []);
-  const [halalStatus, setHalalStatus] = useState<HalalStatus>(initialItem?.halalStatus ?? "UNKNOWN");
   const [spiceLevel, setSpiceLevel] = useState<SpiceLevel | "">(initialItem?.spiceLevel ?? "");
-  const [file, setFile] = useState<File>();
   const [preview, setPreview] = useState(initialItem?.image ?? "");
+  const [file, setFile] = useState<File>();
   const [category, setCategory] = useState(initialItem?.category ?? "Small plates");
   const [isSpecial, setIsSpecial] = useState(initialItem?.isSpecial ?? false);
   const [error, setError] = useState("");
@@ -104,7 +101,6 @@ export function AddItemModal({
        allergens,
        mayContain,
        dietaryTags,
-       halalStatus,
        spiceLevel: spiceLevel || undefined,
       isSpecial,
      } satisfies MenuItem;
@@ -189,7 +185,7 @@ export function AddItemModal({
           </datalist>
         </label>
         <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Mark as special — shows in hero collage & Tonights specials
+          <input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Show in hero collage and Tonight's specials
         </label>
         <div className="item-details-form">
           <div className="detail-section-heading">
@@ -205,21 +201,13 @@ export function AddItemModal({
               placeholder="e.g. Aubergine, miso, sesame, spring herbs"
             />
           </label>
-          <div className="form-split">
-            <label>
-              Halal status
-              <Select value={halalStatus} onChange={(e) => setHalalStatus(e.target.value as HalalStatus)}>
-                {halalStatusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </Select>
-            </label>
-            <label>
-              Spice level
-              <Select value={spiceLevel} onChange={(e) => setSpiceLevel(e.target.value as SpiceLevel | "")}>
-                <option value="">Not specified</option>
-                {spiceLevelOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </Select>
-            </label>
-          </div>
+          <label>
+            Spice level
+            <Select value={spiceLevel} onChange={(e) => setSpiceLevel(e.target.value as SpiceLevel | "")}>
+              <option value="">Not specified</option>
+              {spiceLevelOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </Select>
+          </label>
           <div className="detail-field-group">
             <p className="detail-field-label">Dietary labels <span className="field-hint">Optional</span></p>
             <div className="checkbox-grid">

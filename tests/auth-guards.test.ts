@@ -71,6 +71,14 @@ test('GET /api/superadmin/restaurants returns 401 when unauthenticated', async (
   const res = await app.request('/api/superadmin/restaurants', undefined, fakeEnvAuth())
   assert.equal(res.status, 401)
 })
+test('PATCH /api/superadmin/restaurants/:id/owner returns 401 when unauthenticated', async () => {
+  const res = await app.request('/api/superadmin/restaurants/restaurant-1/owner', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ownerId: 'user-id' }),
+  }, fakeEnvAuth())
+  assert.equal(res.status, 401)
+})
 
 test('GET /api/admin/restaurants returns 401 when unauthenticated', async () => {
   const res = await app.request('/api/admin/restaurants', undefined, fakeEnvAuth())

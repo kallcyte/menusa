@@ -34,15 +34,16 @@ export function Login({ navigate }: { navigate: Navigate }) {
     event.preventDefault();
     setLoading(true);
     setError("");
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       if (mode === "signup") {
-        await signUp(email, password, name);
+        await signUp(normalizedEmail, password, name);
       }
       const response = mode === "signup" ? null : await fetch("/api/auth/sign-in/email", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, rememberMe: true }),
+        body: JSON.stringify({ email: normalizedEmail, password, rememberMe: true }),
       });
       if (response && !response.ok) {
         const body = (await response.json().catch(() => null)) as {
@@ -63,6 +64,8 @@ export function Login({ navigate }: { navigate: Navigate }) {
         throw new Error(
           "Signed in, but the session cookie was not available. Try again.",
         );
+      queryClient.removeQueries({ queryKey: ["admin"] });
+      queryClient.removeQueries({ queryKey: ["superadmin"] });
       navigate("/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in");

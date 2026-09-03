@@ -1,7 +1,7 @@
 @reference "./styles.css";
 
 @layer components {
-  .menu-settings-panel { @apply max-w-[820px] pb-20 pt-[42px]; }
+  .menu-settings-panel { @apply w-full p-0; }
   .menu-settings-intro { @apply mb-[30px] flex items-end justify-between; }
   .menu-settings-intro h1 { @apply mt-2.5 text-[42px] leading-[0.96] tracking-[-0.07em]; }
   .restaurant-settings-mark { @apply grid h-[54px] w-[54px] place-items-center rounded-[8px_8px_8px_2px] bg-[#e75f45] font-display text-xl text-white; }
@@ -19,7 +19,7 @@
   .menu-settings-panel > .settings-card textarea { @apply mt-2; }
   .settings-action-row { @apply mt-6 flex items-center justify-between gap-5 border-t border-[#edede7] pt-5; }
   .settings-action-row .muted { @apply max-w-[330px] text-[11px] leading-[1.45]; }
-  .account-settings-panel { @apply max-w-[820px] pb-20 pt-[42px]; }
+  .account-settings-panel { @apply w-full p-0; }
   .account-settings-intro { @apply mb-[30px] flex items-end justify-between; }
   .account-settings-intro h1 { @apply mt-2.5 text-[42px] leading-[0.96] tracking-[-0.07em]; }
   .account-profile-mark { @apply grid h-[54px] w-[54px] place-items-center rounded-full bg-[#e75f45] font-display text-xl leading-none text-white; }
@@ -45,7 +45,7 @@
 }
 
 @media (max-width: 700px) {
-  .menu-settings-panel { @apply pb-14 pt-7; }
+  .menu-settings-panel { @apply p-0; }
   .menu-settings-intro { @apply items-start gap-5; }
   .menu-settings-intro h1 { @apply text-[35px]; }
   .restaurant-settings-mark { @apply h-11 w-11 text-base; }
@@ -55,7 +55,7 @@
   .settings-action-row { @apply flex-col items-start gap-4; }
   .account-settings-intro { @apply items-start gap-5; }
   .account-settings-intro h1 { @apply text-[35px]; }
-  .account-settings-panel { @apply pb-14 pt-7; }
+  .account-settings-panel { @apply p-0; }
   .account-profile-mark { @apply h-11 w-11 text-base; }
   .account-settings-panel .settings-card { @apply p-[23px_20px]; }
   .account-settings-panel .settings-card h2,

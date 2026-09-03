@@ -19,18 +19,13 @@ import { Textarea } from "../../components/ui/textarea"
 import type { MenuItem } from "../../data"
 
 
-type SuperadminTab = "overview" | "waitlist" | "users" | "restaurants" | "broadcast"
+// Legacy redirect — /admin is canonical. Tabs are URL-driven via /admin/* routes.
+export type SuperadminTab = "overview" | "waitlist" | "users" | "restaurants" | "broadcast"
 
-export function Superadmin({ navigate, initialTab = "overview" }: { navigate: Navigate; initialTab?: SuperadminTab }) {
-  const [tab, setTab] = useState<SuperadminTab>(initialTab)
+export function Superadmin({ navigate }: { navigate: Navigate }) {
+  useEffect(() => { navigate("/admin") }, [navigate])
   const queryClient = useQueryClient()
   const { toast } = useToast()
-
-  useEffect(() => {
-    if (tab !== initialTab) {
-      navigate(tab === "overview" ? "/superadmin" : tab === "waitlist" ? "/superadmin/waitlist" : tab === "users" ? "/superadmin/users" : tab === "restaurants" ? "/superadmin/restaurants" : "/superadmin/broadcast")
-    }
-  }, [initialTab, navigate, tab])
 
   const sessionQuery = useQuery({ queryKey: ["auth", "session"], queryFn: fetchSession, staleTime: 30_000 })
   const meQuery = useQuery({ queryKey: ["superadmin", "me"], queryFn: fetchSuperadminMe, staleTime: 30_000, retry: false })
@@ -77,84 +72,9 @@ export function Superadmin({ navigate, initialTab = "overview" }: { navigate: Na
   }
 
   return (
-    <SidebarProvider className="admin-shell">
-      <Sidebar className="admin-sidebar">
-        <SidebarHeader className="admin-sidebar-header">
-          <Logo />
-          <SidebarTrigger />
-        </SidebarHeader>
-        <SidebarContent className="admin-sidebar-content">
-          <div className="admin-restaurant-wrap">
-            <div className="admin-restaurant" style={{ cursor: "default" }}>
-              <div className="restaurant-avatar" style={{ background: "#e75f45", color: "white" }}><ShieldCheck size={14} /></div>
-              <div>
-                <strong>Superadmin</strong>
-                <span>Platform control</span>
-              </div>
-            </div>
-          </div>
-          <SidebarMenu>
-            <SidebarMenuButton className={tab === "overview" ? "nav-item selected" : "nav-item"} aria-label="Overview" onClick={() => setTab("overview")}>
-              <ShieldCheck size={18} /> <span className="sidebar-label">Overview</span>
-            </SidebarMenuButton>
-            <SidebarMenuButton className={tab === "waitlist" ? "nav-item selected" : "nav-item"} aria-label="Waitlist" onClick={() => setTab("waitlist")}>
-              <ClipboardList size={18} /> <span className="sidebar-label">Waitlist</span>
-            </SidebarMenuButton>
-            <SidebarMenuButton className={tab === "users" ? "nav-item selected" : "nav-item"} aria-label="Users" onClick={() => setTab("users")}>
-              <Users size={18} /> <span className="sidebar-label">Users</span>
-            </SidebarMenuButton>
-            <SidebarMenuButton className={tab === "restaurants" ? "nav-item selected" : "nav-item"} aria-label="Restaurants" onClick={() => setTab("restaurants")}>
-              <Store size={18} /> <span className="sidebar-label">Restaurants</span>
-            </SidebarMenuButton>
-            <SidebarMenuButton className={tab === "broadcast" ? "nav-item selected" : "nav-item"} aria-label="Broadcast" onClick={() => setTab("broadcast")}>
-              <Mail size={18} /> <span className="sidebar-label">Broadcast</span>
-            </SidebarMenuButton>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="sidebar-bottom">
-          <div className="status-pill">
-            <span className="live-dot" /> <span className="sidebar-label">Command center</span>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-      <section className="admin-main">
-        <header className="admin-header">
-          <div className="admin-heading-group">
-            <button className="mobile-back" onClick={() => navigate("/")}>
-              <ArrowLeft size={17} />
-            </button>
-            <div className="admin-heading-copy">
-              <p className="section-kicker">Superadmin · Command center</p>
-              <span className="admin-heading-title">{tab === "overview" ? "Overview" : tab === "waitlist" ? "Waitlist" : tab === "users" ? "Users" : tab === "restaurants" ? "Restaurants" : "Broadcast"}</span>
-            </div>
-          </div>
-          <div className="admin-user-wrap">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="admin-user">
-                  <div className="user-avatar">{sessionQuery.data?.user.name.slice(0, 2).toUpperCase() ?? "SA"}</div>
-                  <span>{sessionQuery.data?.user.name ?? "Superadmin"}</span>
-                  <ChevronDown size={15} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={10} className="account-menu-content">
-                <div className="account-summary">
-                  <strong>{sessionQuery.data?.user.name}</strong>
-                  <span>{sessionQuery.data?.user.email}</span>
-                </div>
-                <DropdownMenuItem className="popover-item" style={{display:"none" as never}} onSelect={() => navigate("/admin")}>
-                  <Store size={15} /> Workspace
-                </DropdownMenuItem>
-                <DropdownMenuItem className="popover-item danger" onSelect={signOut}>
-                  <LogOut size={15} /> Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-        {tab === "overview" ? <OverviewPanel onNavigate={setTab} /> : tab === "waitlist" ? <div className="superadmin-panel"><WaitlistPanel queryKey={["superadmin", "waitlist"]} queryFn={fetchSuperadminWaitlist} /></div> : tab === "users" ? <UsersPanel /> : tab === "restaurants" ? <RestaurantsPanel /> : <BroadcastPanel />}
-      </section>
-    </SidebarProvider>
+    <div className="admin-shell" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
+      <p className="waitlist-loading">Mengalihkan ke /app…</p>
+    </div>
   )
 }
 
@@ -317,7 +237,7 @@ function RestaurantsPanel() {
   )
 }
 
-function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: string; onBack: () => void }) {
+export function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: string; onBack: () => void }) {
   const [tab, setTab] = useState<"menu" | "settings">("menu")
   const [showAdd, setShowAdd] = useState(false)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
@@ -549,7 +469,7 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
   )
 }
 
-function OverviewPanel({ onNavigate }: { onNavigate: (tab: SuperadminTab) => void }) {
+export function OverviewPanel({ onNavigate }: { onNavigate: (tab: SuperadminTab) => void }) {
   const waitlistQuery = useQuery({ queryKey: ["superadmin", "waitlist"], queryFn: fetchSuperadminWaitlist, staleTime: 30_000 })
   const usersQuery = useQuery({ queryKey: ["superadmin", "users"], queryFn: fetchSuperadminUsers, staleTime: 30_000 })
   const restaurantsQuery = useQuery({ queryKey: ["superadmin", "restaurants"], queryFn: fetchSuperadminRestaurants, staleTime: 30_000 })

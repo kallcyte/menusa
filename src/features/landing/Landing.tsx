@@ -1,37 +1,37 @@
- import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
- import {
-   ArrowUpRight,
-   Check,
-   Clock3,
-   Image as ImageIcon,
-   Layers,
-   Mail,
-   MapPin,
-   QrCode,
-   Search,
-   ShieldCheck,
-   Sparkles,
-   Store,
-   Zap,
- } from "lucide-react";
- import { Button, Logo } from "../../components";
- import { Input } from "../../components/ui/input";
- import {
-   Dialog,
-   DialogContent,
-   DialogDescription,
-   DialogHeader,
-   DialogTitle,
- } from "../../components/ui/dialog";
+import { useTranslation } from "react-i18next";
+import {
+  ArrowUpRight,
+  Check,
+  Clock3,
+  Image as ImageIcon,
+  Layers,
+  Mail,
+  MapPin,
+  QrCode,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Zap,
+} from "lucide-react";
+import { Button, Logo } from "../../components";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { Input } from "../../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { categories, menuItems, restaurants, type MenuItem } from "../../data";
-import { optionLabel } from "../shared";
-import { allergenOptions, dietaryTagOptions, halalStatusOptions, spiceLevelOptions } from "../../data";
+import { allergenOptions, dietaryTagOptions, spiceLevelOptions } from "../../data";
 import { ApiError, joinWaitlist } from "../../api";
-
-type Navigate = (path: string) => void;
-
+import { optionLabel, type Navigate } from "../shared";
+import { formatPrice } from "../../lib/currency";
  const features = [
    {
      icon: Layers,
@@ -95,82 +95,86 @@ type Navigate = (path: string) => void;
  ];
 
 
- function WaitlistForm({ variant = "light", className = "" }: { variant?: "light" | "dark"; className?: string }) {
-   const [email, setEmail] = useState("");
-   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-   const [message, setMessage] = useState("");
+function WaitlistForm({ variant = "light", className = "" }: { variant?: "light" | "dark"; className?: string }) {
+  const { t } = useTranslation("landing")
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setStatus("error");
+      setMessage(t("waitlistInvalid"));
+      return;
+    }
+    setStatus("loading");
+    setMessage("");
+    try {
+      const res = await joinWaitlist(trimmed);
+      if ((res as { already?: boolean }).already) {
+        setStatus("success");
+        setMessage(t("waitlistSuccessAlready"));
+      } else {
+        setStatus("success");
+        setMessage(t("waitlistSuccessNew"));
+      }
+      setEmail("");
+    } catch (err) {
+      setStatus("error");
+      if (err instanceof ApiError) setMessage(err.message);
+      else setMessage(t("somethingWrongCopy" as never) ?? "Terjadi kesalahan. Coba lagi.");
+    }
+  }
+
+  const isDark = variant === "dark";
+
+  if (status === "success") {
+    return (
+      <div className={className}>
+        <div className={isDark ? "waitlist-success waitlist-success--dark" : "waitlist-success"}>
+          <span className="waitlist-success-icon"><Check size={16} /></span>
+          <div>
+            <p className="waitlist-success-title">{t("waitlistSuccessTitle")}</p>
+            <p className="waitlist-success-copy">{message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
  
-   async function handleSubmit(e: React.FormEvent) {
-     e.preventDefault();
-     const trimmed = email.trim();
-     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-       setStatus("error");
-       setMessage("Please enter a valid email address.");
-       return;
-     }
-     setStatus("loading");
-     setMessage("");
-     try {
-       const res = await joinWaitlist(trimmed);
-       if ((res as { already?: boolean }).already) {
-         setStatus("success");
-         setMessage("You're already on the list — we'll be in touch soon!");
-       } else {
-         setStatus("success");
-         setMessage("You're on the list! We'll let you know as soon as Menusa is ready for you.");
-       }
-       setEmail("");
-     } catch (err) {
-       setStatus("error");
-       if (err instanceof ApiError) setMessage(err.message);
-       else setMessage("Something went wrong. Please try again.");
-     }
-   }
- 
-   const isDark = variant === "dark";
- 
-   if (status === "success") {
-     return (
-       <div className={className}>
-         <div className={isDark ? "waitlist-success waitlist-success--dark" : "waitlist-success"}>
-           <span className="waitlist-success-icon"><Check size={16} /></span>
-           <div>
-             <p className="waitlist-success-title">You're on the list!</p>
-             <p className="waitlist-success-copy">{message}</p>
-           </div>
-         </div>
-       </div>
-     );
-   }
- 
-   return (
-     <form onSubmit={handleSubmit} className={className} noValidate>
-       <div className={isDark ? "waitlist-form waitlist-form--dark" : "waitlist-form"}>
-         <div className="waitlist-field">
-           <Mail size={16} className={isDark ? "waitlist-field-icon waitlist-field-icon--dark" : "waitlist-field-icon"} />
-           <input
-             type="email"
-             value={email}
-             onChange={(e) => setEmail(e.target.value)}
-             placeholder="Your email"
-             aria-label="Email address"
-             className={isDark ? "waitlist-input waitlist-input--dark" : "waitlist-input"}
-             disabled={status === "loading"}
-             required
-           />
-         </div>
-         <Button type="submit" disabled={status === "loading"} className={isDark ? "waitlist-submit waitlist-submit--dark !rounded-full" : "waitlist-submit !rounded-full"}>
-           {status === "loading" ? "Joining..." : "Join the waitlist"} <ArrowUpRight size={14} />
-         </Button>
-       </div>
-       {status === "error" && message && <p className={isDark ? "waitlist-error waitlist-error--dark" : "waitlist-error"}>{message}</p>}
-       <p className={isDark ? "waitlist-hint waitlist-hint--dark" : "waitlist-hint"}>No spam. We&apos;ll only email you when Menusa is ready.</p>
-     </form>
-   );
- }
+  return (
+    <form onSubmit={handleSubmit} className={className} noValidate>
+      <div className={isDark ? "waitlist-form waitlist-form--dark" : "waitlist-form"}>
+        <div className="waitlist-field">
+          <Mail size={16} className={isDark ? "waitlist-field-icon waitlist-field-icon--dark" : "waitlist-field-icon"} />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("waitlistPlaceholder")}
+            aria-label="Email address"
+            className={isDark ? "waitlist-input waitlist-input--dark" : "waitlist-input"}
+            disabled={status === "loading"}
+            required
+          />
+        </div>
+        <Button type="submit" disabled={status === "loading"} className={isDark ? "waitlist-submit waitlist-submit--dark !rounded-full" : "waitlist-submit !rounded-full"}>
+          {status === "loading" ? t("joining") : t("joinWaitlist")} <ArrowUpRight size={14} />
+        </Button>
+      </div>
+      {status === "error" && message && <p className={isDark ? "waitlist-error waitlist-error--dark" : "waitlist-error"}>{message}</p>}
+      <p className={isDark ? "waitlist-hint waitlist-hint--dark" : "waitlist-hint"}>{t("waitlistHint")}</p>
+    </form>
+  );
+}
 
 export function Landing({ navigate }: { navigate: Navigate }) {
-  const [active, setActive] = useState("All");
+  const { t, i18n } = useTranslation("landing")
+  const { t: tCommon } = useTranslation("common")
+  const [active, setActive] = useState("Semua");
   const [search, setSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -231,7 +235,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
     const q = search.trim().toLowerCase();
     return menuItems.filter(
       (item) =>
-        (active === "All" || item.category === active) &&
+        (active === "Semua" || item.category === active) &&
         `${item.name} ${item.description}`.toLowerCase().includes(q)
     );
   }, [active, search]);
@@ -246,17 +250,18 @@ export function Landing({ navigate }: { navigate: Navigate }) {
           <Logo dark />
         </a>
         <nav className="hidden md:flex items-center gap-6 text-[13px] text-[#777970]" aria-label="Primary">
-          <a href="#features" className="hover:text-[#242622] transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-[#242622] transition-colors">How it works</a>
-          <a href="#demo" className="hover:text-[#242622] transition-colors">Demo</a>
-          <a href="#faq" className="hover:text-[#242622] transition-colors">FAQ</a>
+          <a href="#features" className="hover:text-[#242622] transition-colors">{t("features")}</a>
+          <a href="#how-it-works" className="hover:text-[#242622] transition-colors">{t("howItWorks")}</a>
+          <a href="#demo" className="hover:text-[#242622] transition-colors">{t("demo")}</a>
+          <a href="#faq" className="hover:text-[#242622] transition-colors">{t("faq")}</a>
         </nav>
         <div className="header-actions">
+          <LanguageSwitcher variant="compact" />
           <Button variant="outline" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="hidden sm:inline-flex bg-white">
-            See a live menu
+            {t("seeLiveMenu")}
           </Button>
           <Button variant="outline" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} size="sm" className="sm:hidden bg-white">
-            See demo
+            {t("seeDemo")}
           </Button>
         </div>
       </header>
@@ -266,24 +271,23 @@ export function Landing({ navigate }: { navigate: Navigate }) {
           <div className="landing-hero-grid">
             <div>
               <div className="eyebrow gsap-hero-eyebrow !text-[#e75f45] !tracking-[0.08em]">
-                <span className="live-dot !bg-[#e75f45]" /> The easy QR menu for your restaurant
+                <span className="live-dot !bg-[#e75f45]" /> {t("eyebrow")}
               </div>
               <h1 className="hero-display gsap-hero-title !mb-5 !mt-5">
-                Your menu,
+                {t("heroTitle1")}
                 <br />
-                <em>beautiful</em>
+                <em>{t("heroTitle2")}</em>
                 <br />
-                <span className="font-sans font-semibold tracking-[-0.08em] text-[#e75f45]">on every phone.</span>
+                <span className="font-sans font-semibold tracking-[-0.08em] text-[#e75f45]">{t("heroTitle3")}</span>
               </h1>
               <p className="hero-copy gsap-hero-copy !max-w-[420px] !text-[17px]">
-                A beautiful menu for your restaurant. One link, one QR code — <span className="text-[#242622] font-medium">always up to date.</span>
+                {t("heroCopy")}
               </p>
               <WaitlistForm className="gsap-hero-form mt-6 max-w-[420px]" />
               <div className="gsap-hero-meta mt-4 flex flex-wrap items-center gap-3 text-[11px] text-[#85877d]">
-                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> No credit card</span>
+                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> {t("noCreditCard")}</span>
                 <span className="h-3 w-px bg-[#d4d4cc]" />
-                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> Ready in 2 minutes</span>
-
+                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[#5a9a68]" /> {t("readyIn2")}</span>
               </div>
               <div className="gsap-hero-social mt-6 flex items-center gap-3 border-t border-[#d4d4cc] pt-5">
                 <div className="flex -space-x-2">
@@ -292,7 +296,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-[#5a7b65] text-[10px] font-bold text-white ring-2 ring-[#f3f2ed]">+</span>
                 </div>
                 <p className="text-xs leading-[1.4] text-[#777970]">
-                  <span className="font-semibold text-[#242622]">Loved by restaurants like</span> — Salt & Ember, Alba House + yours
+                  <span className="font-semibold text-[#242622]">{t("lovedBy")}</span> — Warung Nusantara, Kedai Pesisir + yours
                 </p>
               </div>
            </div>
@@ -302,8 +306,8 @@ export function Landing({ navigate }: { navigate: Navigate }) {
             <div className="landing-phone">
               <div className="landing-phone-notch" />
               <div className="landing-phone-header">
-                <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[#85877d]">Tonight at the table</span>
-                <span className="text-[11px] font-medium text-[#242622]">Salt & Ember</span>
+                <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[#85877d]">{t("tonightAtTable" as never) ?? "Tonight at the table"}</span>
+                <span className="text-[11px] font-medium text-[#242622]">Warung Nusantara</span>
               </div>
               <div className="landing-phone-grid">
                 {menuItems.slice(0, 4).map((item, i) => (
@@ -313,13 +317,13 @@ export function Landing({ navigate }: { navigate: Navigate }) {
                     <div className="landing-phone-card-content">
                       {item.tag && <span className="landing-phone-tag">{item.tag}</span>}
                       <p className="landing-phone-card-title">{item.name}</p>
-                      <p className="landing-phone-card-price">£{item.price}</p>
+                      <p className="landing-phone-card-price">{formatPrice(item.price, "IDR", i18n.language)}</p>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="landing-phone-search">
-                <Search size={12} /> Find a dish <span className="ml-auto rounded-full bg-[#f3f2ed] px-2 py-0.5 text-[10px]">Allergen-aware</span>
+                <Search size={12} /> {t("findDish")} <span className="ml-auto rounded-full bg-[#f3f2ed] px-2 py-0.5 text-[10px]">Allergen-aware</span>
               </div>
             </div>
 
@@ -333,11 +337,10 @@ export function Landing({ navigate }: { navigate: Navigate }) {
               </div>
               <div>
                 <p className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#85877d]">Scan at table 12</p>
-                <p className="text-[13px] font-semibold tracking-[-0.02em] text-[#242622]">menusa.com/salt-ember</p>
+                <p className="text-[13px] font-semibold tracking-[-0.02em] text-[#242622]">menusa.com/warung-nusantara</p>
                 <p className="text-[11px] text-[#5a9a68]">● Live — updates on publish</p>
               </div>
             </div>
-
             <div className="landing-float-stat gsap-float-stat">
               <Sparkles size={14} className="text-[#e75f45]" />
               <span className="text-xs font-medium text-[#242622]">Publish once</span>
@@ -511,7 +514,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
                      <h3>{item.name}</h3>
                      <p>{item.description}</p>
                    </div>
-                   <span className="price">£{item.price}</span>
+                   <span className="price">{formatPrice(item.price, "IDR", i18n.language)}</span>
                  </div>
                </div>
              </button>
@@ -605,18 +608,15 @@ export function Landing({ navigate }: { navigate: Navigate }) {
               <DialogTitle>{selectedItem.name}</DialogTitle>
               <DialogDescription>{selectedItem.description}</DialogDescription>
               <div className="item-detail-price-row">
-                <span className="price">£{selectedItem.price}</span>
+                <span className="price">{formatPrice(selectedItem.price, "IDR", i18n.language)}</span>
                 {selectedItem.tag && <span className="item-tag">{selectedItem.tag}</span>}
               </div>
             </DialogHeader>
-            {(selectedItem.dietaryTags?.length || selectedItem.halalStatus || selectedItem.spiceLevel) && (
+            {(selectedItem.dietaryTags?.length || selectedItem.spiceLevel) && (
               <div className="detail-chip-row">
                 {selectedItem.dietaryTags?.map((t: string) => (
                   <span key={t} className="detail-chip">{optionLabel(dietaryTagOptions, t)}</span>
                 ))}
-                {selectedItem.halalStatus && selectedItem.halalStatus !== "UNKNOWN" && (
-                  <span className="detail-chip">{optionLabel(halalStatusOptions, selectedItem.halalStatus)}</span>
-                )}
                 {selectedItem.spiceLevel && <span className="detail-chip">{optionLabel(spiceLevelOptions, selectedItem.spiceLevel)}</span>}
               </div>
             )}

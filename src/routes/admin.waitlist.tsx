@@ -1,9 +1,8 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Admin } from '../App'
+import { createFileRoute } from '@tanstack/react-router'
+import { requireSuperadmin } from './admin'
+import { WaitlistPanel } from '../features/workspace/WaitlistPanel'
 
-export const Route = createFileRoute('/admin/waitlist')({ component: WaitlistRoute })
-
-function WaitlistRoute() {
-  const navigate = useNavigate()
-  return <Admin navigate={(path) => navigate({ to: path as never })} initialTab="waitlist" />
-}
+export const Route = createFileRoute('/admin/waitlist')({
+  beforeLoad: requireSuperadmin,
+  component: () => <WaitlistPanel />,
+})

@@ -20,7 +20,7 @@ const DialogContent = forwardRef<ElementRef<typeof DialogPrimitive.Content>, Com
     <DialogOverlay />
     <DialogPrimitive.Content ref={ref} className={cn('fixed left-1/2 top-1/2 z-50 flex max-h-[92vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-2xl border bg-[#f7f7f3] p-0 shadow-2xl data-[state=open]:animate-[dialog-content-in_0.38s_cubic-bezier(0.16,1,0.3,1)_forwards] data-[state=closed]:animate-[dialog-content-out_0.2s_ease-in_forwards]', className)} {...props}>
       {children}
-      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-sm bg-transparent text-[#777970] opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#e75f45]/40 disabled:pointer-events-none">
+      <DialogPrimitive.Close aria-label="Close" title="Close" className="absolute right-5 top-5 rounded-sm bg-transparent text-[#777970] opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#e75f45]/40 disabled:pointer-events-none">
         <X size={19} />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -30,7 +30,7 @@ const DialogContent = forwardRef<ElementRef<typeof DialogPrimitive.Content>, Com
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-1.5 text-left', className)} {...props} />
+  return <div className={cn('flex flex-col space-y-1.5 p-6 pb-0 text-left', className)} {...props} />
 }
 
 function DialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

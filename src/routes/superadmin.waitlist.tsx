@@ -1,9 +1,6 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Superadmin } from '../App'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/superadmin/waitlist')({ component: RouteComponent })
-
-function RouteComponent() {
-  const navigate = useNavigate()
-  return <Superadmin navigate={path => navigate({ to: path as never })} initialTab="waitlist" />
-}
+export const Route = createFileRoute('/superadmin/waitlist')({
+  beforeLoad: () => { throw redirect({ to: '/admin/waitlist' }) },
+  component: () => null,
+})

@@ -1,9 +1,6 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Admin } from '../App'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/account/settings')({ component: AccountSettingsRoute })
-
-function AccountSettingsRoute() {
-  const navigate = useNavigate()
-  return <Admin navigate={path => navigate({ to: path as never })} initialTab="account" />
-}
+export const Route = createFileRoute('/account/settings')({
+  beforeLoad: () => { throw redirect({ to: '/admin/account-settings' }) },
+  component: () => null,
+})

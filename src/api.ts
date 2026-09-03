@@ -1,9 +1,10 @@
 import { menuItems, restaurants, type MenuItem, type Restaurant } from './data'
 
 export type AuthSession = { user: { id: string; name: string; email: string; role?: string }; session: { id: string; expiresAt: string } }
-export type AdminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null }
-export type SuperadminUser = { id: string; name: string; email: string; role: string; createdAt: string }
-export type SuperadminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number; ownerId: string; ownerEmail: string | null; createdAt: string; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null }
+export type HalalCertificationAuthority = 'BPJPH' | 'MUI'
+export type AdminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; currency?: string; halalCertificationAuthority?: HalalCertificationAuthority; halalCertificationNumber?: string; halalCertificateImageKey?: string; banner?: { type: 'none' | 'promo' | 'announcement'; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; announcement?: string; dismissible?: boolean } | null }
+export type SuperadminUser = { id: string; name: string; email: string; role: string; createdAt: string; username?: string | null; restaurantIds?: string[] }
+export type SuperadminRestaurant = { id: string; slug: string; name: string; description: string; address: string; hours: string; published: number; ownerId: string; ownerEmail: string | null; createdAt: string; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; currency?: string; halalCertificationAuthority?: HalalCertificationAuthority; halalCertificationNumber?: string; halalCertificateImageKey?: string; banner?: { type: 'none' | 'promo' | 'announcement'; promo?: unknown; announcement?: string; dismissible?: boolean } | null }
 export type WaitlistEntry = { id: string; email: string; restaurantName: string | null; createdAt: string }
 
 export class ApiError extends Error {
@@ -75,7 +76,7 @@ export async function fetchAdminItems(restaurantId?: string): Promise<MenuItem[]
   return result.items.map(item => ({ ...item, image: imageFor(item, true) }))
 }
 
-export function updateAdminRestaurant(input: Pick<AdminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo'>, restaurantId?: string) {
+export function updateAdminRestaurant(input: Pick<AdminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo' | 'halalCertificationAuthority' | 'halalCertificationNumber' | 'halalCertificateImageKey'> & { currency?: string; bannerType?: string; bannerPromoId?: string | null; bannerAnnouncement?: string | null; bannerDismissible?: boolean }, restaurantId?: string) {
   return request<{ ok: boolean }>(`/api/admin/restaurant${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
 }
 
@@ -195,6 +196,9 @@ export function updateSuperadminRestaurant(id: string, input: Pick<SuperadminRes
 export function deleteSuperadminRestaurant(id: string) {
   return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+export function transferSuperadminRestaurantOwnership(restaurantId: string, ownerId: string, removePreviousOwnerAccess = true) {
+  return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/owner`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ownerId, removePreviousOwnerAccess }) })
+}
 export async function fetchSuperadminItems(restaurantId: string) {
   const result = await request<{ items: Array<MenuItem & { imageKey?: string }> }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`)
   return { items: result.items.map(item => ({ ...item, image: imageFor(item, false, true) })) }
@@ -237,4 +241,40 @@ export function uploadSuperadminImage(restaurantId: string, file: File) {
 
 export function sendSuperadminBroadcast(input: { audience: 'waitlist' | 'users' | 'all'; subject: string; html: string; text: string }) {
   return request<{ ok: boolean; sent: number; skipped?: boolean; reason?: string }>('/api/superadmin/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
+}
+export function createSuperadminUser(input: { name: string; username: string; email: string; password: string; role?: 'user' | 'superadmin'; restaurantIds?: string[] }) {
+  return request<{ user: SuperadminUser }>('/api/superadmin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
+}
+export function updateSuperadminUser(id: string, patch: { name?: string; username?: string; email?: string; role?: 'user' | 'superadmin'; restaurantIds?: string[] }) {
+  return request<{ ok: boolean }>(`/api/superadmin/users/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+}
+export function resetSuperadminPassword(id: string, password: string) {
+  return request<{ ok: boolean }>(`/api/superadmin/users/${encodeURIComponent(id)}/reset-password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) })
+}
+export function fetchCampaigns(params?: { q?: string; category?: string; tag?: string }) {
+  const qs = new URLSearchParams()
+  if (params?.q) qs.set('q', params.q)
+  if (params?.category) qs.set('category', params.category)
+  if (params?.tag) qs.set('tag', params.tag)
+  const suffix = qs.toString() ? `?${qs.toString()}` : ''
+  return request<{ campaigns: Array<{ id: string; subject: string; html: string; text: string; audience: string; tags: string; category: string | null; status: string; sent_count: number; created_at: string; sent_at: string | null }> }>(`/api/superadmin/campaigns${suffix}`)
+}
+export function createCampaign(input: { subject: string; html: string; text: string; audience: 'waitlist' | 'users' | 'all'; category?: string; tags?: string[] }) {
+  return request<{ ok: boolean; sent: number; campaign: { id: string } }>('/api/superadmin/campaigns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
+}
+export function fetchAdminPromos(restaurantId?: string) {
+  const qs = restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''
+  return request<{ promos: Array<{ id: string; title: string; description: string | null; badge: string | null; type: string; status: string; valid_from: string | null; valid_until: string | null; applies_to: string; applies_ids: string; stackable: number; min_purchase: number | null; created_at: string }> }>(`/api/admin/promos${qs}`)
+}
+export function createPromo(input: Record<string, unknown>, restaurantId?: string) {
+  const qs = restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''
+  return request<{ promo: { id: string } }>(`/api/admin/promos${qs}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
+}
+export function updatePromo(id: string, patch: Record<string, unknown>, restaurantId?: string) {
+  const qs = restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''
+  return request<{ ok: boolean }>(`/api/admin/promos/${encodeURIComponent(id)}${qs}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+}
+export function deletePromo(id: string, restaurantId?: string) {
+  const qs = restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''
+  return request<{ ok: boolean }>(`/api/admin/promos/${encodeURIComponent(id)}${qs}`, { method: 'DELETE' })
 }

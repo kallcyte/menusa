@@ -50,6 +50,7 @@ export function MenuManager({
   onRestore: (id: string) => Promise<boolean>;
   onUpdate: (item: MenuItem) => Promise<boolean>;
   onPublishItem: (id: string) => Promise<boolean>;
+  onDraftItem: (id: string) => Promise<boolean>;
   onReorder: (id: string, direction: -1 | 1) => Promise<boolean>;
   onReorderTo: (id: string, targetId: string) => Promise<boolean>;
   onPublish: () => Promise<boolean>;
