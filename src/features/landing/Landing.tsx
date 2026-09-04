@@ -329,7 +329,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
       </section>
 
        {/* PROBLEM → SOLUTION */}
-       <section className="landing-section">
+       <section className="landing-section landing-section--tinted">
          <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">{t("whyMenusa")}</p>
            <h2>{t("problemTitle1")}<br /><em>{t("problemTitle2")}</em></h2>
@@ -358,7 +358,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
  
        </section>
        {/* FEATURES */}
-       <section id="features" className="landing-section landing-section--tinted">
+       <section id="features" className="landing-section">
          <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">{t("whatYouGet")}</p>
            <h2>{t("featuresTitle1")}<br /><em>{t("featuresTitle2")}</em></h2>
@@ -375,7 +375,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
          </div>
        </section>
        {/* HOW IT WORKS */}
-       <section id="how-it-works" className="landing-section">
+       <section id="how-it-works" className="landing-section landing-section--tinted">
          <div className="landing-section-head gsap-reveal">
            <p className="section-kicker">{t("howItWorksKicker")}</p>
            <h2>{t("howItWorksTitle1")} <em>{t("howItWorksTitle2")}</em>.</h2>
@@ -416,7 +416,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
        </section>
  
        {/* LIVE DEMO */}
-       <section id="demo" className="landing-section landing-section--tinted">
+       <section id="demo" className="landing-section">
          <div className="landing-demo-head gsap-reveal">
            <div>
              <p className="section-kicker">{t("demoKicker")}</p>
@@ -504,7 +504,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
        </section>
 
       {/* FAQ */}
-      <section id="faq" className="landing-section">
+      <section id="faq" className="landing-section landing-section--tinted">
         <div className="landing-section-head gsap-reveal">
           <p className="section-kicker">{t("faqKicker")}</p>
           <h2>{t("faqTitle")}</h2>
