@@ -227,7 +227,7 @@ export function Landing({ navigate }: { navigate: Navigate }) {
         <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label={t("homeAriaLabel")}>
           <Logo dark />
         </a>
-        <nav className="hidden md:flex items-center gap-6 text-[13px] text-[#777970]" aria-label={t("primaryNav")}>
+        <nav className="hidden lg:flex items-center gap-6 text-[13px] text-[#777970]" aria-label={t("primaryNav")}>
           <a href="#features" className="hover:text-[#242622] transition-colors">{t("features")}</a>
           <a href="#how-it-works" className="hover:text-[#242622] transition-colors">{t("howItWorks")}</a>
           <a href="#demo" className="hover:text-[#242622] transition-colors">{t("demo")}</a>

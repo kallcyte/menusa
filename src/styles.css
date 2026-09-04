@@ -337,10 +337,10 @@
    .landing-shell { @apply min-h-screen w-full bg-[#f3f2ed] antialiased; }
   .landing-hero { @apply relative overflow-visible px-[5.6vw] pb-16 pt-10 md:pb-24 md:pt-16; }
   .landing-hero::before { content: ""; @apply pointer-events-none absolute inset-0 opacity-[0.035]; background: radial-gradient(ellipse 78% 58% at 14% 18%, #e75f45 0%, transparent 56%), radial-gradient(ellipse 52% 36% at 86% 26%, #5a7b65 0%, transparent 44%); }
-  .landing-hero-grid { @apply relative grid gap-10 md:grid-cols-[1.06fr_0.94fr] md:items-center md:gap-12 lg:gap-16; }
+  .landing-hero-grid { @apply relative grid gap-10 lg:gap-12 xl:grid-cols-[1.06fr_0.94fr] xl:items-center xl:gap-16; }
   .landing-hero .hero-display { @apply !text-[clamp(42px,5.2vw,68px)] !leading-[0.92] !tracking-[-0.06em] !mt-4 !mb-4; }
   .landing-hero .hero-copy { @apply !max-w-[480px] !text-[17px] !leading-[1.6] !text-[#5a5c55] md:!text-[18px]; }
-  .landing-phone-wrap { @apply relative mx-auto w-full max-w-[360px] md:mx-0 md:ml-auto md:mr-6 lg:max-w-[400px]; }
+  .landing-phone-wrap { @apply relative mx-auto w-full max-w-[360px] lg:max-w-[400px] xl:mx-0 xl:ml-auto xl:mr-6; }
   .landing-phone { @apply relative overflow-hidden rounded-[28px] border border-[#d4d4cc] bg-white p-3 shadow-[0_32px_80px_rgba(37,39,35,0.16),0_8px_24px_rgba(37,39,35,0.10)] md:rounded-[32px] md:p-4; }
   .landing-phone-notch { @apply mx-auto mb-3 h-1.5 w-20 rounded-full bg-[#242622]/10; }
   .landing-phone-header { @apply mb-3 flex items-center justify-between rounded-xl bg-[#f3f2ed] px-3.5 py-2.5; }
@@ -354,7 +354,7 @@
   .landing-phone-card-title { @apply font-display text-[13px] font-medium leading-none text-white; }
   .landing-phone-card-price { @apply mt-1 font-mono text-[11px] text-white/80; }
   .landing-phone-search { @apply mt-3 flex items-center gap-2 rounded-full border border-[#e3e3dd] bg-[#f7f7f3] px-3.5 py-2.5 text-xs text-[#85877d]; }
-  .landing-qr-card { @apply absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-[#d4d4cc] bg-white p-3 pr-4 shadow-[0_20px_48px_rgba(37,39,35,0.18)] md:bottom-auto md:left-0 md:top-[58%] md:p-4 md:pr-5; }
+  .landing-qr-card { @apply absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-[#d4d4cc] bg-white p-3 pr-4 shadow-[0_20px_48px_rgba(37,39,35,0.18)] xl:bottom-auto xl:left-0 xl:top-[58%] xl:p-4 xl:pr-5; }
   .landing-qr-grid span { @apply rounded-sm bg-white; }
   .landing-float-stat { @apply absolute -right-3 -top-3 hidden items-center gap-2 rounded-full border border-[#d4d4cc] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(37,39,35,0.12)] md:flex md:px-3.5 md:py-2.5; }
   .landing-section { @apply px-[5.6vw] py-16 md:py-24; }
