@@ -369,8 +369,9 @@
   .landing-problem-card h3 { @apply text-[18px] font-semibold tracking-[-0.03em] text-[#242622]; }
   .landing-problem-card > p { @apply mt-3 text-[14px] leading-[1.6] text-[#777970]; }
   .landing-problem-meta { @apply mt-5 block border-t border-[#f0f0ea] pt-4 font-mono text-[10px] uppercase tracking-[0.04em] text-[#a0a29a]; }
-  .landing-feature-grid { @apply mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3; }
-  .landing-feature-card { @apply rounded-2xl border border-[#e3e3dd] bg-[#f7f7f3] p-7 shadow-[0_2px_12px_rgba(37,39,35,0.03)] transition-all hover:border-[#d4d4cc] hover:bg-white hover:shadow-[0_12px_32px_rgba(37,39,35,0.08)] hover:-translate-y-1; }
+  .landing-feature-grid { @apply mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-6; }
+  .landing-feature-card { @apply rounded-2xl border border-[#e3e3dd] bg-[#f7f7f3] p-7 shadow-[0_2px_12px_rgba(37,39,35,0.03)] transition-all hover:border-[#d4d4cc] hover:bg-white hover:shadow-[0_12px_32px_rgba(37,39,35,0.08)] hover:-translate-y-1 lg:col-span-2; }
+  .landing-feature-card:nth-child(4) { @apply lg:col-start-2; }
   .landing-feature-icon { @apply mb-5 grid h-11 w-11 place-items-center rounded-xl bg-[#252723] text-white shadow-sm; }
   .landing-feature-kicker { @apply font-mono text-[10px] uppercase tracking-[0.06em] text-[#e75f45]; }
   .landing-feature-card h3 { @apply mt-2 text-[17px] font-semibold tracking-[-0.03em] text-[#242622]; }
