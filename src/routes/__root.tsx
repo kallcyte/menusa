@@ -7,6 +7,7 @@ import '../styles.css'
 import '../account-settings.css'
 import favicon from '../assets/menusa-favicon.svg'
 import appleTouchIcon from '../assets/menusa-apple-touch-icon.svg'
+import iconLogo from '../assets/menusa-icon.svg'
 
 // Registered from an inline module so it never blocks hydration; only ever
 // activates over HTTPS or localhost (the browser enforces this for SW APIs).
@@ -32,6 +33,54 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
+function PageLoader() {
+  const [exiting, setExiting] = useState(false)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const startedAt = Date.now()
+    let finished = false
+    let exitTimer: number | undefined
+    let removeTimer: number | undefined
+
+    const finish = () => {
+      if (finished) return
+      finished = true
+      const minimumDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 550
+      const delay = Math.max(0, minimumDuration - (Date.now() - startedAt))
+      exitTimer = window.setTimeout(() => {
+        setExiting(true)
+        removeTimer = window.setTimeout(() => setVisible(false), 260)
+      }, delay)
+    }
+
+    const fallbackTimer = window.setTimeout(finish, 1800)
+    if (document.readyState === 'complete') finish()
+    else window.addEventListener('load', finish, { once: true })
+
+    return () => {
+      finished = true
+      window.clearTimeout(fallbackTimer)
+      if (exitTimer !== undefined) window.clearTimeout(exitTimer)
+      if (removeTimer !== undefined) window.clearTimeout(removeTimer)
+      window.removeEventListener('load', finish)
+    }
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <div className={`page-loader${exiting ? ' page-loader--exiting' : ''}`} role="status" aria-label="Loading Menusa">
+      <div className="page-loader-inner">
+        <img src={iconLogo} alt="" className="page-loader-icon" />
+        <div className="page-loader-track" aria-hidden="true">
+          <span className="page-loader-progress" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RootDocument({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
   useEffect(() => {
@@ -43,7 +92,18 @@ function RootDocument({ children }: { children: ReactNode }) {
     window.addEventListener('storage', sync)
     return () => window.removeEventListener('storage', sync)
   }, [])
-  return <html lang="id"><head><HeadContent /></head><body><QueryClientProvider client={queryClient}><ToastProvider>{children}</ToastProvider></QueryClientProvider><Scripts /></body></html>
+  return (
+    <html lang="id">
+      <head><HeadContent /></head>
+      <body>
+        <PageLoader />
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>{children}</ToastProvider>
+        </QueryClientProvider>
+        <Scripts />
+      </body>
+    </html>
+  )
 }
 
 export function RouteError({ error }: { error: Error }) {
