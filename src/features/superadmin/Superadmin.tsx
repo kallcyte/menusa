@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, ChevronDown, ClipboardList, LogOut, Mail, ShieldCheck, Store, Users } from "lucide-react"
 import { Logo } from "../../components"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar"
-import { archiveSuperadminItem, createSuperadminItem, deleteSuperadminRestaurant, deleteSuperadminUser, draftSuperadminItem, fetchSession, fetchSuperadminItems, fetchSuperadminMe, fetchSuperadminRestaurant, fetchSuperadminRestaurants, fetchSuperadminUsers, fetchSuperadminWaitlist, logout, publishSuperadminItem, publishSuperadminMenu, reorderSuperadminItem, restoreSuperadminItem, sendSuperadminBroadcast, setSuperadminVisibility, unpublishSuperadminMenu, updateSuperadminItem, updateSuperadminRestaurant, updateSuperadminUserRole, uploadSuperadminImage } from "../../api"
+import { archiveSuperadminItem, deleteSuperadminRestaurant, deleteSuperadminUser, draftSuperadminItem, fetchSession, fetchSuperadminItems, fetchSuperadminMe, fetchSuperadminRestaurant, fetchSuperadminRestaurants, fetchSuperadminUsers, fetchSuperadminWaitlist, logout, publishSuperadminItem, publishSuperadminMenu, reorderSuperadminItem, restoreSuperadminItem, sendSuperadminBroadcast, setSuperadminVisibility, unpublishSuperadminMenu, updateSuperadminRestaurant, updateSuperadminUserRole, uploadSuperadminImage } from "../../api"
 import { useToast } from "../../components/ui/toast"
 import type { Navigate } from "../shared"
 import { errorMessage } from "../shared"
 import { WaitlistPanel } from "../workspace/WaitlistPanel"
 import { MenuManager } from "../workspace/MenuManager"
-import { AddItemModal } from "../workspace/AddItemModal"
 import { Button } from "../../components"
 import { Card } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Select } from "../../components/ui/select"
 import { Textarea } from "../../components/ui/textarea"
-import type { MenuItem } from "../../data"
+import { getHoursInputValues } from "../../lib/restaurantHours"
 
 
 // Legacy redirect — /admin is canonical. Tabs are URL-driven via /admin/* routes.
@@ -238,10 +238,8 @@ function RestaurantsPanel() {
 }
 
 export function SuperadminRestaurantDetail({ restaurantId, onBack }: { restaurantId: string; onBack: () => void }) {
-  const [tab, setTab] = useState<"menu" | "settings">("menu")
-  const [showAdd, setShowAdd] = useState(false)
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [visibility, setVisibility] = useState<boolean | null>(null)
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -254,31 +252,6 @@ export function SuperadminRestaurantDetail({ restaurantId, onBack }: { restauran
   useEffect(() => {
     if (restaurant) setVisibility(Boolean(restaurant.published))
   }, [restaurant?.published])
-  const handleAdd = async (item: MenuItem) => {
-    try {
-      await createSuperadminItem(restaurantId, item)
-      await queryClient.invalidateQueries({ queryKey: ["superadmin", "items", restaurantId] })
-      setShowAdd(false)
-      toast({ title: "Item added" })
-      return true
-    } catch (err) {
-      toast({ variant: "error", title: "Couldn't add item", description: errorMessage(err, "Please try again.") })
-      return false
-    }
-  }
-
-  const handleUpdate = async (item: MenuItem) => {
-    try {
-      await updateSuperadminItem(restaurantId, item)
-      await queryClient.invalidateQueries({ queryKey: ["superadmin", "items", restaurantId] })
-      setEditingItem(null)
-      toast({ title: "Item updated" })
-      return true
-    } catch (err) {
-      toast({ variant: "error", title: "Couldn't update", description: errorMessage(err, "Please try again.") })
-      return false
-    }
-  }
 
   const runAction = async (id: string, action: () => Promise<unknown>, successMsg: string) => {
     try { await action(); await queryClient.invalidateQueries({ queryKey: ["superadmin", "items", restaurantId] }); toast({ title: successMsg }); return true } catch (err) { toast({ variant: "error", title: "Action failed", description: errorMessage(err, "Please try again.") }); return false }
@@ -337,59 +310,57 @@ export function SuperadminRestaurantDetail({ restaurantId, onBack }: { restauran
       </div>
 
       <div className="superadmin-detail-tabs" role="tablist">
-        <button role="tab" aria-selected={tab === "menu"} className={tab === "menu" ? "superadmin-detail-tab active" : "superadmin-detail-tab"} onClick={() => setTab("menu")}>Menu</button>
-        <button role="tab" aria-selected={tab === "settings"} className={tab === "settings" ? "superadmin-detail-tab active" : "superadmin-detail-tab"} onClick={() => setTab("settings")}>Settings</button>
+        <Link role="tab" className="superadmin-detail-tab" activeOptions={{ exact: true }} activeProps={{ className: "superadmin-detail-tab active", "aria-selected": true }} inactiveProps={{ "aria-selected": false }} to="/admin/restaurant/$slug" params={{ slug: restaurant.slug }}>Menu</Link>
+        <Link role="tab" className="superadmin-detail-tab" activeProps={{ className: "superadmin-detail-tab active", "aria-selected": true }} inactiveProps={{ "aria-selected": false }} to="/admin/restaurant/$slug/settings" params={{ slug: restaurant.slug }}>Settings</Link>
       </div>
 
-      {tab === "menu" ? (
-        <div className="superadmin-manager-wrap">
-          <MenuManager
-            variant="superadmin"
-            items={items}
-            onAdd={() => setShowAdd(true)}
-            onArchive={(id) => runAction(id, () => archiveSuperadminItem(restaurantId, id), "Item archived")}
-            onRestore={(id) => runAction(id, () => restoreSuperadminItem(restaurantId, id), "Item restored")}
-            onUpdate={handleUpdate}
-            onPublishItem={(id) => runAction(id, () => publishSuperadminItem(restaurantId, id), "Item published")}
-            onDraftItem={(id) => runAction(id, () => draftSuperadminItem(restaurantId, id), "Item drafted")}
-            onReorderTo={reorderTo}
-            onReorder={async (id, dir) => {
-              const index = items.findIndex(i => i.id === id)
-              const target = index + dir
-              if (index < 0 || target < 0 || target >= items.length) return false
-              const reordered = [...items]
-              ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
-              return runAction(id, async () => {
-                await Promise.all(reordered.map((item, itemIndex) =>
-                  reorderSuperadminItem(restaurantId, item.id, itemIndex),
-                ))
-              }, "Order updated")
-            }}
-            onPublish={() => updateMenuVisibility(true, () => publishSuperadminMenu(restaurantId), "Menu published")}
-            onUnpublish={() => updateMenuVisibility(false, () => unpublishSuperadminMenu(restaurantId), "Menu unpublished")}
-            published={isPublished}
-            loading={itemsQuery.isFetching}
-            loadingInitial={itemsQuery.isPending}
-            loadError={itemsQuery.error ? errorMessage(itemsQuery.error, "") : null}
-            onRetry={() => itemsQuery.refetch()}
-          />
-          {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={handleAdd} superadminRestaurantId={restaurantId} />}
-          {editingItem && <AddItemModal onClose={() => setEditingItem(null)} onSave={handleUpdate} initialItem={editingItem} superadminRestaurantId={restaurantId} />}
-        </div>
-      ) : (
-        <SuperadminRestaurantSettings restaurant={restaurant} onSaved={() => queryClient.invalidateQueries({ queryKey: ["superadmin", "restaurant", restaurantId] })} />
-      )}
+      <div className="superadmin-manager-wrap">
+        <MenuManager
+          variant="superadmin"
+          items={items}
+          currency={restaurant.currency}
+          onAdd={() => void navigate({ to: "/admin/add", search: { restaurantId, returnTo: `/admin/restaurant/${restaurant.slug}` } as never })}
+          onEdit={(item) => void navigate({ to: "/admin/edit/$itemId", params: { itemId: item.id }, search: { restaurantId, returnTo: `/admin/restaurant/${restaurant.slug}` } as never })}
+          onArchive={(id) => runAction(id, () => archiveSuperadminItem(restaurantId, id), "Item archived")}
+          onRestore={(id) => runAction(id, () => restoreSuperadminItem(restaurantId, id), "Item restored")}
+          onPublishItem={(id) => runAction(id, () => publishSuperadminItem(restaurantId, id), "Item published")}
+          onDraftItem={(id) => runAction(id, () => draftSuperadminItem(restaurantId, id), "Item drafted")}
+          onReorderTo={reorderTo}
+          onReorder={async (id, dir) => {
+            const index = items.findIndex(i => i.id === id)
+            const target = index + dir
+            if (index < 0 || target < 0 || target >= items.length) return false
+            const reordered = [...items]
+            ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
+            return runAction(id, async () => {
+              await Promise.all(reordered.map((item, itemIndex) =>
+                reorderSuperadminItem(restaurantId, item.id, itemIndex),
+              ))
+            }, "Order updated")
+          }}
+          onPublish={() => updateMenuVisibility(true, () => publishSuperadminMenu(restaurantId), "Menu published")}
+          onUnpublish={() => updateMenuVisibility(false, () => unpublishSuperadminMenu(restaurantId), "Menu unpublished")}
+          published={isPublished}
+          loading={itemsQuery.isFetching}
+          loadingInitial={itemsQuery.isPending}
+          loadError={itemsQuery.error ? errorMessage(itemsQuery.error, "") : null}
+          onRetry={() => itemsQuery.refetch()}
+        />
+      </div>
     </div>
   )
 }
 
-function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { id: string; slug: string; name: string; description: string; address: string; hours: string; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; published: number }; onSaved: () => void }) {
+export function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { id: string; slug: string; name: string; description: string; address: string; hours: string; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; currency?: string; published: number }; onSaved: (slug: string) => void }) {
   const { toast } = useToast()
   const [name, setName] = useState(restaurant.name)
   const [slug, setSlug] = useState(restaurant.slug)
   const [description, setDescription] = useState(restaurant.description)
   const [address, setAddress] = useState(restaurant.address)
   const [hours, setHours] = useState(restaurant.hours)
+  const initialHours = getHoursInputValues(restaurant.hours, restaurant.hoursDetail)
+  const [openingTime, setOpeningTime] = useState(initialHours.openingTime)
+  const [closingTime, setClosingTime] = useState(initialHours.closingTime)
   const [story, setStory] = useState(restaurant.story ?? "")
   const [phone, setPhone] = useState(restaurant.phone ?? "")
   const [instagram, setInstagram] = useState(restaurant.instagram ?? "")
@@ -400,17 +371,23 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
   const [promoValidUntil, setPromoValidUntil] = useState(restaurant.promo?.validUntil ?? "")
   const [promoType, setPromoType] = useState(restaurant.promo?.type ?? "custom")
   const [promoEnabled, setPromoEnabled] = useState(Boolean(restaurant.promo))
+  const [currency, setCurrency] = useState(restaurant.currency || "IDR")
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
     setSaving(true)
     try {
+      if (Boolean(openingTime) !== Boolean(closingTime)) {
+        toast({ variant: "error", title: "Couldn't save", description: "Set both an opening time and a closing time." })
+        return
+      }
       const normalizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+      const savedHours = openingTime && closingTime ? `${openingTime} - ${closingTime}` : hours.trim()
       const promo = promoEnabled && promoTitle.trim() ? { title: promoTitle.trim(), description: promoDescription.trim() || undefined, badge: promoBadge.trim() || undefined, validUntil: promoValidUntil.trim() || undefined, type: promoType as "bogo" | "discount" | "package" | "custom" } : null
-      await updateSuperadminRestaurant(restaurant.id, { slug: normalizedSlug, name: name.trim(), description: description.trim(), address: address.trim(), hours: hours.trim(), story: story.trim(), phone: phone.trim(), instagram: instagram.trim().replace(/^@/, ""), hoursDetail: hoursDetail.trim(), promo })
+      await updateSuperadminRestaurant(restaurant.id, { slug: normalizedSlug, name: name.trim(), description: description.trim(), address: address.trim(), hours: savedHours, story: story.trim(), phone: phone.trim(), instagram: instagram.trim().replace(/^@/, ""), hoursDetail: hoursDetail.trim(), promo, currency })
       setSlug(normalizedSlug)
       toast({ title: "Restaurant updated" })
-      onSaved()
+      onSaved(normalizedSlug)
     } catch (err) {
       toast({ variant: "error", title: "Couldn't save", description: errorMessage(err, "Please try again.") })
     } finally { setSaving(false) }
@@ -428,13 +405,20 @@ function SuperadminRestaurantSettings({ restaurant, onSaved }: { restaurant: { i
         </div>
         <label>Short description<Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} /></label>
         <label>Address<Input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={240} /></label>
-        <label>Opening hours<Input value={hours} onChange={(e) => setHours(e.target.value)} maxLength={240} /></label>
+        <div className="menu-settings-fields">
+          <label>Opening time<Input type="time" value={openingTime} onChange={(e) => setOpeningTime(e.target.value)} /></label>
+          <label>Closing time<Input type="time" value={closingTime} onChange={(e) => setClosingTime(e.target.value)} /></label>
+        </div>
         <label>Story <span className="field-hint">Shown under the hero</span><Textarea value={story} onChange={(e) => setStory(e.target.value)} maxLength={500} placeholder="Wood-fired, market-led..." /></label>
         <div className="menu-settings-fields">
           <label>Phone<Input value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} placeholder="01273 456 789" /></label>
           <label>Instagram<Input value={instagram} onChange={(e) => setInstagram(e.target.value)} maxLength={64} placeholder="saltandember" /></label>
         </div>
         <label>Hours detail <span className="field-hint">Find Us card</span><Input value={hoursDetail} onChange={(e) => setHoursDetail(e.target.value)} maxLength={240} placeholder="Mon–Thu 5–11pm · Fri–Sat 5–11:30pm" /></label>
+        <div className="superadmin-currency-card">
+          <p className="section-kicker">Currency</p>
+          <label>Currency<Select value={currency} onChange={(e) => setCurrency(e.target.value)}><option value="IDR">IDR (Rp)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="SGD">SGD (S$)</option><option value="MYR">MYR (RM)</option><option value="JPY">JPY (¥)</option></Select></label>
+        </div>
         <div className="superadmin-promo-card">
           <div className="superadmin-promo-header">
             <div><p className="section-kicker">Promo banner</p><p className="muted">Appears above the hero.</p></div>

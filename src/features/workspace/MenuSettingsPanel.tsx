@@ -7,13 +7,19 @@ import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
 import { fetchAdminPromos, updateAdminRestaurant, uploadMenuImage } from "../../api";
+import type { AdminRestaurant } from "../../api";
 import { formatPrice } from "../../lib/currency";
+import { getHoursInputValues } from "../../lib/restaurantHours";
 
 export function MenuSettingsPanel({
   restaurant,
+  restaurants,
+  onRestaurantChange,
   onSaved,
 }: {
-  restaurant: { id: string; slug: string; name: string; description: string; address: string; hours: string; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: { title: string; description?: string; badge?: string; validUntil?: string; type?: string } | null; currency?: string; halalCertificationAuthority?: "BPJPH" | "MUI"; halalCertificationNumber?: string; halalCertificateImageKey?: string; banner?: { type: 'none' | 'promo' | 'announcement'; promo?: unknown; announcement?: string; dismissible?: boolean } | null };
+  restaurant: AdminRestaurant;
+  restaurants?: AdminRestaurant[];
+  onRestaurantChange?: (restaurantId: string) => void;
   onSaved: () => Promise<unknown>;
 }) {
   const { t, i18n } = useTranslation(["admin", "common"])
@@ -22,6 +28,9 @@ export function MenuSettingsPanel({
   const [description, setDescription] = useState(restaurant.description);
   const [address, setAddress] = useState(restaurant.address);
   const [hours, setHours] = useState(restaurant.hours);
+  const initialHours = getHoursInputValues(restaurant.hours, restaurant.hoursDetail);
+  const [openingTime, setOpeningTime] = useState(initialHours.openingTime);
+  const [closingTime, setClosingTime] = useState(initialHours.closingTime);
   const [story, setStory] = useState(restaurant.story ?? "");
   const [phone, setPhone] = useState(restaurant.phone ?? "");
   const [instagram, setInstagram] = useState(restaurant.instagram ?? "");
@@ -53,6 +62,9 @@ export function MenuSettingsPanel({
     setDescription(restaurant.description);
     setAddress(restaurant.address);
     setHours(restaurant.hours);
+    const nextHours = getHoursInputValues(restaurant.hours, restaurant.hoursDetail);
+    setOpeningTime(nextHours.openingTime);
+    setClosingTime(nextHours.closingTime);
     setStory(restaurant.story ?? "");
     setPhone(restaurant.phone ?? "");
     setInstagram(restaurant.instagram ?? "");
@@ -91,13 +103,19 @@ export function MenuSettingsPanel({
     setMessage("");
     setError("");
     try {
+      if (Boolean(openingTime) !== Boolean(closingTime)) {
+        setError("Set both an opening time and a closing time.");
+        setSaving(false);
+        return;
+      }
       const normalizedSlug = slug
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
+      const savedHours = openingTime && closingTime ? `${openingTime} - ${closingTime}` : hours.trim();
       const promo = promoEnabled && promoTitle.trim() ? { title: promoTitle.trim(), description: promoDescription.trim() || undefined, badge: promoBadge.trim() || undefined, validUntil: promoValidUntil.trim() || undefined, type: promoType as "bogo" | "discount" | "package" | "custom" } : null;
-      await updateAdminRestaurant({ slug: normalizedSlug, name: name.trim(), description: description.trim(), address: address.trim(), hours: hours.trim(), story: story.trim(), phone: phone.trim(), instagram: instagram.trim().replace(/^@/, ""), hoursDetail: hoursDetail.trim(), halalCertificationAuthority: halalCertificationAuthority || null, halalCertificationNumber: halalCertificationNumber.trim(), halalCertificateImageKey: halalCertificateImageKey || "", promo, currency: currency as never, bannerType: bannerType as never, bannerPromoId: bannerType === 'promo' ? (bannerPromoId || null) : null, bannerAnnouncement: bannerType === 'announcement' ? bannerAnnouncement : null, bannerDismissible } as never, restaurant.id);
+      await updateAdminRestaurant({ slug: normalizedSlug, name: name.trim(), description: description.trim(), address: address.trim(), hours: savedHours, story: story.trim(), phone: phone.trim(), instagram: instagram.trim().replace(/^@/, ""), hoursDetail: hoursDetail.trim(), halalCertificationAuthority: halalCertificationAuthority || null, halalCertificationNumber: halalCertificationNumber.trim(), halalCertificateImageKey: halalCertificateImageKey || "", promo, currency: currency as never, bannerType: bannerType as never, bannerPromoId: bannerType === 'promo' ? (bannerPromoId || null) : null, bannerAnnouncement: bannerType === 'announcement' ? bannerAnnouncement : null, bannerDismissible } as never, restaurant.id);
       setSlug(normalizedSlug);
       await onSaved();
       setMessage("Restaurant settings saved.");
@@ -123,6 +141,11 @@ export function MenuSettingsPanel({
         </div>
         <div className="restaurant-settings-mark">S</div>
       </div>
+      {restaurants && restaurants.length > 1 && onRestaurantChange && (
+        <div className="menu-settings-restaurant-picker">
+          <label>Restaurant<Select value={restaurant.id} onValueChange={onRestaurantChange}>{restaurants.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</Select></label>
+        </div>
+      )}
       <Card className="settings-card">
         <div className="menu-settings-card-heading">
           <div>
@@ -156,10 +179,16 @@ export function MenuSettingsPanel({
           Address
           <Input value={address} onChange={(event) => setAddress(event.target.value)} maxLength={240} />
         </label>
-        <label>
-          Opening hours
-          <Input value={hours} onChange={(event) => setHours(event.target.value)} maxLength={240} />
-        </label>
+        <div className="menu-settings-fields">
+          <label>
+            Opening time
+            <Input type="time" value={openingTime} onChange={(event) => setOpeningTime(event.target.value)} />
+          </label>
+          <label>
+            Closing time
+            <Input type="time" value={closingTime} onChange={(event) => setClosingTime(event.target.value)} />
+          </label>
+        </div>
         <label>
           Story <span className="field-hint">Shown under the hero</span>
           <Textarea value={story} onChange={(event) => setStory(event.target.value)} maxLength={500} placeholder="Wood-fired, market-led, open since 2019..." />

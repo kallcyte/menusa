@@ -1,11 +1,10 @@
 export type MenuItemStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
-export type Allergen = 'celery' | 'cereals-gluten' | 'crustaceans' | 'eggs' | 'fish' | 'lupin' | 'milk' | 'molluscs' | 'mustard' | 'nuts' | 'peanuts' | 'sesame' | 'soya' | 'sulphites'
 export type DietaryTag = 'VEGAN' | 'VEGETARIAN' | 'GLUTEN_FREE' | 'DAIRY_FREE' | 'NON_ALCOHOLIC'
 export type HalalStatus = 'UNKNOWN' | 'HALAL_INGREDIENTS' | 'HALAL_CERTIFIED' | 'NOT_HALAL'
 export type SpiceLevel = 'MILD' | 'MEDIUM' | 'HOT'
 export type PromoType = 'bogo' | 'discount' | 'package' | 'custom'
 export type Promo = { title: string; description?: string; badge?: string; validUntil?: string; type?: PromoType }
-export type MenuItem = { id: string; name: string; description: string; price: string; category: string; image: string; imageKey?: string; tag?: string; accent?: string; status?: MenuItemStatus; ingredients?: string; allergens?: Allergen[]; mayContain?: Allergen[]; dietaryTags?: DietaryTag[]; halalStatus?: HalalStatus; spiceLevel?: SpiceLevel; isSpecial?: boolean }
+export type MenuItem = { id: string; name: string; description: string; price: string; category: string; image: string; imageKey?: string; tag?: string; accent?: string; status?: MenuItemStatus; ingredients?: string; dietaryTags?: DietaryTag[]; halalStatus?: HalalStatus; spiceLevel?: SpiceLevel; isSpecial?: boolean }
 export type HalalCertificationAuthority = 'BPJPH' | 'MUI'
 export type Restaurant = { id?: string; slug: string; name: string; description: string; address: string; hours: string; accent: string; items: MenuItem[]; story?: string; phone?: string; instagram?: string; hoursDetail?: string; promo?: Promo | null; menuVisible?: boolean; currency?: string; halalCertificationAuthority?: HalalCertificationAuthority; halalCertificationNumber?: string; halalCertificateImageKey?: string; banner?: { type: 'none' | 'promo' | 'announcement'; promo?: Promo | null; announcement?: string; dismissible?: boolean } | null }
 
@@ -21,22 +20,6 @@ export const categorySlugToLabel: Record<string, string> = {
   'drinks': 'Minuman',
 }
 export const tagSuggestions = ['Pilihan Chef', 'Nabati', 'Segar', 'Pedas', 'Tradisional', 'Favorit', 'Baru']
-export const allergenOptions: Array<{ value: Allergen; label: string }> = [
-  { value: 'celery', label: 'Seledri' },
-  { value: 'cereals-gluten', label: 'Serealia mengandung gluten' },
-  { value: 'crustaceans', label: 'Krustasea' },
-  { value: 'eggs', label: 'Telur' },
-  { value: 'fish', label: 'Ikan' },
-  { value: 'lupin', label: 'Lupin' },
-  { value: 'milk', label: 'Susu' },
-  { value: 'molluscs', label: 'Moluska' },
-  { value: 'mustard', label: 'Mustard' },
-  { value: 'nuts', label: 'Kacang pohon' },
-  { value: 'peanuts', label: 'Kacang tanah' },
-  { value: 'sesame', label: 'Wijen' },
-  { value: 'soya', label: 'Kedelai' },
-  { value: 'sulphites', label: 'Sulfit' },
-]
 export const dietaryTagOptions: Array<{ value: DietaryTag; label: string }> = [
   { value: 'VEGAN', label: 'Vegan' },
   { value: 'VEGETARIAN', label: 'Vegetarian' },
@@ -89,7 +72,7 @@ export const menuItems: MenuItem[] = [
 ]
 
 export const restaurants: Record<string, Restaurant> = {
-  'demo': { id: 'demo', slug: 'demo', name: 'Warung Nusantara', description: 'Masakan Indonesia dari dapur ke meja — resep rumahan, rempah pilihan, dan bahan segar setiap hari.', address: 'Jl. Senopati No. 14, Jakarta Selatan', hours: 'Buka hari ini · sampai 22:30', accent: 'salt', items: menuItems, story: 'Hidangan Nusantara yang akrab dengan sentuhan hangat untuk makan bersama.', phone: '021 4567 8901', instagram: 'warungnusantara', hoursDetail: 'Sen–Kam 11–22 · Jum–Sab 11–22:30 · Min 12–21', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, currency: 'IDR', banner: { type: 'none' } },
-  'restaurant-1': { id: 'restaurant-1', slug: 'restaurant-1', name: 'Warung Nusantara', description: 'Cita rasa Nusantara dari dapur ke meja — resep warisan, bahan segar pasar.', address: 'Jl. Senopati No. 14, Jakarta Selatan', hours: 'Buka hari ini · sampai 22:30', accent: 'salt', items: menuItems, story: 'Didirikan 2019 — kami memasak apa yang dibawa pasar pagi, dengan api kayu dan rempah pilihan.', phone: '021 4567 8901', instagram: 'warungnusantara', hoursDetail: 'Sen–Kam 11–22 · Jum–Sab 11–22:30 · Min 12–21', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, currency: 'IDR', banner: { type: 'promo', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, dismissible: true } },
+  'demo': { id: 'demo', slug: 'demo', name: 'Warung Nusantara', description: 'Masakan Indonesia dari dapur ke meja — resep rumahan, rempah pilihan, dan bahan segar setiap hari.', address: 'Jl. Senopati No. 14, Jakarta Selatan', hours: '11:00 - 22:00', accent: 'salt', items: menuItems, story: 'Hidangan Nusantara yang akrab dengan sentuhan hangat untuk makan bersama.', phone: '021 4567 8901', instagram: 'warungnusantara', hoursDetail: 'Sen–Kam 11–22 · Jum–Sab 11–22:30 · Min 12–21', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, currency: 'IDR', banner: { type: 'none' } },
+  'restaurant-1': { id: 'restaurant-1', slug: 'restaurant-1', name: 'Warung Nusantara', description: 'Cita rasa Nusantara dari dapur ke meja — resep warisan, bahan segar pasar.', address: 'Jl. Senopati No. 14, Jakarta Selatan', hours: '11:00 - 22:00', accent: 'salt', items: menuItems, story: 'Didirikan 2019 — kami memasak apa yang dibawa pasar pagi, dengan api kayu dan rempah pilihan.', phone: '021 4567 8901', instagram: 'warungnusantara', hoursDetail: 'Sen–Kam 11–22 · Jum–Sab 11–22:30 · Min 12–21', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, currency: 'IDR', banner: { type: 'promo', promo: { title: 'Paket Berdua — Rp95.000', description: '2 makanan utama + 2 minuman, setiap hari minggu ini.', badge: 'Minggu ini', validUntil: 'Sampai Minggu', type: 'package' }, dismissible: true } },
   'restaurant-2': { id: 'restaurant-2', slug: 'restaurant-2', name: 'Kedai Pesisir', description: 'Hidangan laut segar, santan gurih, dan angin Bali di setiap suapan.', address: 'Jl. Pantai Berawa No. 8, Canggu, Bali', hours: 'Buka hari ini · sampai 22:00', accent: 'alba', items: menuItems.map((item, index) => ({ ...item, id: `pesisir-${item.id}`, name: index === 0 ? 'Udang Bakar Sambal Matah' : index === 1 ? 'Pelecing Kangkung' : item.name, category: index < 2 ? 'Dari Laut' : item.category })), story: 'Hidangan laut segar langsung dari pesisir — bakar arang, sambal matah, dan kelapa.', phone: '0361 234 5678', instagram: 'kedaipesisir.bali', hoursDetail: 'Sel–Min 12–22 · Tutup Senin', promo: { title: 'Beli 2 Gratis 1', description: 'Untuk semua makanan pembuka — campur & cocokkan.', badge: 'Promo', validUntil: 'Sepanjang bulan', type: 'bogo' }, currency: 'IDR', banner: { type: 'none', dismissible: true } },
 }

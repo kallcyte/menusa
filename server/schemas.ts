@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-const allergenValues = ['celery', 'cereals-gluten', 'crustaceans', 'eggs', 'fish', 'lupin', 'milk', 'molluscs', 'mustard', 'nuts', 'peanuts', 'sesame', 'soya', 'sulphites'] as const
 const dietaryTagValues = ['VEGAN', 'VEGETARIAN', 'GLUTEN_FREE', 'DAIRY_FREE', 'NON_ALCOHOLIC'] as const
 
 export const menuItemSchema = z.object({
@@ -13,8 +12,6 @@ export const menuItemSchema = z.object({
   isSpecial: z.boolean().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
   ingredients: z.string().max(500).optional(),
-  allergens: z.array(z.enum(allergenValues)).max(allergenValues.length).optional(),
-  mayContain: z.array(z.enum(allergenValues)).max(allergenValues.length).optional(),
   dietaryTags: z.array(z.enum(dietaryTagValues)).max(dietaryTagValues.length).optional(),
   halalStatus: z.enum(['UNKNOWN', 'HALAL_INGREDIENTS', 'HALAL_CERTIFIED', 'NOT_HALAL']).optional(),
   spiceLevel: z.enum(['MILD', 'MEDIUM', 'HOT']).optional(),
@@ -55,6 +52,7 @@ export const createRestaurantSchema = z.object({
    instagram: z.string().max(64).optional(),
    hoursDetail: z.string().max(240).optional(),
    promo: z.object({ title: z.string().min(1).max(80), description: z.string().max(240).optional(), badge: z.string().max(32).optional(), validUntil: z.string().max(64).optional(), type: z.enum(['bogo','discount','package','custom']).optional() }).nullable().optional(),
+   currency: z.enum(['IDR','USD','EUR','SGD','MYR','JPY']).optional(),
    halalCertificationAuthority: z.enum(['BPJPH', 'MUI']).nullable().optional(),
    halalCertificationNumber: z.string().max(80).optional(),
    halalCertificateImageKey: z.string().max(240).optional(),

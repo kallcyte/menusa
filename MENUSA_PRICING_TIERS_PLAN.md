@@ -2,7 +2,7 @@
 
 Menusa is a QR-menu-only SaaS (no POS, no table ordering, no inventory) — a photo-led public menu at `/api/menu/:slug` with admin CRUD for restaurants + menu items (D1 `restaurants`/`menu_items`, R2 images, Better Auth). Founder wants exactly 2 tiers — Free and Paid — targeting general Indonesia SMEs (warung, kedai kopi, cafe kecil, resto kecil). Unsure what IDR price is defensible and which features justify paywall. Candidates confirmed viable: custom domain via Cloudflare for SaaS, multiple restaurants per account, higher menu-item cap. Need a decision-complete spec for pricing, entitlement matrix, and minimal code to enforce it without building a full billing system on day one.
 
-End state: Free is generous enough to get adoption (1 outlet, ~30 items covers most warungs) but hits a natural ceiling; Paid at Rp49k–59k/mo unlocks growth features and is implementable as D1-enforced limits + UI upsell, with manual superadmin upgrade first and Midtrans later. No paywall on safety/inclusivity features (allergy/halal).
+End state: Free is generous enough to get adoption (1 outlet, ~30 items covers most warungs) but hits a natural ceiling; Paid at Rp49k–59k/mo unlocks growth features and is implementable as D1-enforced limits + UI upsell, with manual superadmin upgrade first and Midtrans later. No paywall on core menu features.
 
 ## Approach
 
@@ -10,10 +10,10 @@ End state: Free is generous enough to get adoption (1 outlet, ~30 items covers m
 
 Decision (based on 2025-2026 ID QR-menu comps: Netdigi Lite Rp10k/thn-annual or Rp29k/mo, Pro Rp49k/thn-annual or Rp119k/mo; Kasigo Free 1 lokasi/30 menu, Warung Rp99k/mo, Restoran Rp249k/5 lokasi; QRes Starter Rp99k/3 meja, Pro Rp299k; Labamu QR Rp150k/10 meja; SmartMenu from Rp4.9k promo):
 
-- **Free (Rp0 forever, no card):** 1 restaurant per user, 30 published+draft menu items per restaurant (archived excluded), `yourname.menusa.id` subdomain only, "Made with Menusa" badge required, community support, all core menu features (photos, categories, reorder, search, allergy/ingredients/dietary/halal/spice).
+- **Free (Rp0 forever, no card):** 1 restaurant per user, 30 published+draft menu items per restaurant (archived excluded), `yourname.menusa.id` subdomain only, "Made with Menusa" badge required, community support, all core menu features (photos, categories, reorder, search, ingredients/dietary/halal/spice).
 - **Pro — Rp59.000 / bulan ditagih bulanan, atau Rp499.000 / tahun (hemat ~30%, ~Rp41.500/bulan, framing "Rp1.900/hari"):** Alternative if founder wants lower friction: Rp49.000/mo / Rp390.000/yr — pick one before Step 2 and freeze it. Pro entitlements: up to 3 restaurants per user (covers 95% of SME multi-outlet; "unlimited" is a support risk), 150 items per restaurant, custom domain (1 per restaurant, Cloudflare for SaaS), remove Menusa badge toggle, scan/view analytics (future), priority WA/email support. Annual gets 2 months free — standard ID expectation (15–20% off).
 - **Why this price:** Menusa is QR-only, so must undercut POS+QR (Rp99k–299k). Rp49k–59k sits just above Netdigi Pro annual (Rp49k) but well below QRes/Kasigo paid, matches warung willingness (Rp10k–99k for simple QR, Rp99k+ only if POS included). Rp1.600–1.900/hari framing is critical for warung psychology; avoid $ pricing.
-- **Do NOT gate:** allergen/dietary/halal/ingredients, publish/unpublish, image upload, category/reorder — gating safety or core editing kills trust and conversion.
+- **Do NOT gate:** dietary/halal/ingredients, publish/unpublish, image upload, category/reorder — gating core editing kills trust and conversion.
 - **Defer to Pro v2 (do not build now, just reserve column):** high-res QR export, custom accent/theme, menu scheduling, team members. Mention on pricing page as "coming soon" to increase perceived value without scope.
 
 If founder insists on Rp99k to match POS comps, keep entitlements identical and add "3 restaurants + 150 items" justification; do not raise free limit to compensate.

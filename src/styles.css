@@ -20,6 +20,8 @@
   .public-shell { @apply mx-auto min-h-screen max-w-[1440px] bg-[#f3f2ed]; }
   .site-header { @apply flex h-[82px] items-center justify-between px-[5.6vw]; }
   .header-actions { @apply flex items-center gap-[22px]; }
+  .public-nav { @apply flex min-w-0 items-center gap-4; }
+  .public-nav a { @apply whitespace-nowrap text-[11px] font-medium text-[#777970] transition-colors hover:text-[#242622]; }
   .icon-button { @apply bg-transparent p-1.5 text-[#242622]; }
   .button { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-0.5; }
   .dark-button { @apply bg-[#252723] text-white hover:bg-[#3a3d36]; }
@@ -141,12 +143,6 @@
   .specials-card-content p { @apply mt-1 text-xs leading-[1.4] text-white/70; }
   .specials-card-content .price { @apply mt-2 inline-block font-mono text-sm text-white; }
 
-  .allergen-legend { @apply mx-[5.6vw] mt-12 rounded-2xl border border-[#e3e3dd] bg-white p-6 md:p-7; }
-  .allergen-legend-kicker { @apply flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-[#5a7b65]; }
-  .allergen-legend-copy { @apply mt-2 max-w-[560px] text-[13px] leading-[1.6] text-[#777970]; }
-  .allergen-legend-tags { @apply mt-4 flex flex-wrap gap-1.5; }
-  .allergen-legend-tag { @apply rounded-full bg-[#f3f2ed] px-2.5 py-1 text-[10px] text-[#777970]; }
-  .allergen-legend-tag--more { @apply bg-[#ebf3e9] text-[#4e7f5a]; }
   .halal-certification { @apply mx-[5.6vw] mt-12 rounded-2xl border border-[#d8e7d4] bg-[#f5faf3] p-6 md:p-7; }
   .halal-certification-kicker { @apply flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-[#4e7f5a]; }
   .halal-certification-heading h2 { @apply mt-2 text-[clamp(24px,3vw,34px)] font-semibold leading-none tracking-[-0.06em] text-[#242622]; }
@@ -267,6 +263,7 @@
   .item-cell { @apply flex items-center gap-3; }
   .item-cell img { @apply h-[52px] w-[52px] shrink-0 rounded object-cover; }
   .item-cell strong { @apply block font-display text-[17px] font-medium leading-tight; }
+  .menu-item-special { @apply inline-flex items-center gap-1 rounded-full bg-[#fff0ed] px-2 py-1 text-[10px] font-medium text-[#b04b39]; }
   .menu-item-category { @apply justify-self-start rounded-full bg-[#f3f2ed] px-2.5 py-1.5 text-[11px]; }
   .menu-item-price { @apply justify-self-end text-right text-[13px] font-medium tabular-nums; }
   .more-button { @apply bg-transparent text-[#92948c]; }
@@ -296,7 +293,6 @@
   .detail-actions { @apply mx-7 border-t border-[#edede7] py-4; }
   .detail-action { @apply inline-flex items-center gap-2 rounded-full bg-[#242622] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#3b3e38] focus:outline-none focus:ring-2 focus:ring-[#e75f45]/40; }
   .item-detail-dialog > button { @apply right-4 top-4 rounded-full bg-[#f7f7f3ee] p-2 text-[#242622] opacity-100 shadow-sm backdrop-blur transition-colors hover:bg-white focus:ring-2 focus:ring-[#e75f45]/40; }
-  .detail-allergy-note { @apply mx-7 mb-7 rounded border border-[#ead9b9] bg-[#fff8e9] p-3 text-[11px] leading-[1.45] text-[#806b45]; }
   .settings-feedback { @apply mb-[15px] max-w-[700px] rounded p-3 text-xs leading-[1.45]; }
   .settings-feedback.success { @apply border border-[#d1e4cf] bg-[#ebf3e9] text-[#4e7f5a]; }
   .settings-feedback.error { @apply border border-[#efc9c1] bg-[#fbe9e5] text-[#a24638]; }
@@ -304,6 +300,21 @@
   .modal-head { @apply mb-0 flex justify-between border-b border-[#e3e3dd] !p-7 !pb-6; }
   .modal form { @apply grid gap-4 p-7; }
   .modal form label { @apply grid gap-2 text-[11px] font-medium text-[#5d6058]; }
+  .form-split { @apply grid grid-cols-2 gap-4; }
+  .menu-item-page { @apply w-full max-w-none; }
+  .menu-item-page-header { @apply mb-6; }
+  .menu-item-back { @apply mb-5 inline-flex items-center gap-1.5 bg-transparent text-xs text-[#777970] transition-colors hover:text-[#e75f45]; }
+  .menu-item-page-header h1 { @apply mt-1.5 text-[39px] tracking-[-0.07em] text-[#242622]; }
+  .menu-item-page-header > p:last-child { @apply mt-2 text-[13px] text-[#7c7e76]; }
+  .menu-item-form { @apply grid gap-4 rounded border border-[#deded6] bg-white p-7; }
+  .menu-item-form label { @apply grid gap-2 text-[11px] font-medium text-[#5d6058]; }
+  .menu-item-form-actions { @apply mt-2 flex justify-end gap-2 border-t border-[#e3e3dd] pt-5; }
+  .currency-input { @apply flex items-center overflow-hidden rounded-md border border-[#d8d9d0] bg-[#fbfbf9] transition-colors focus-within:border-[#e75f45] focus-within:ring-2 focus-within:ring-[#e75f45]/10; }
+  .currency-input-prefix { @apply shrink-0 border-r border-[#e3e3dd] px-3 text-sm font-medium text-[#5d6058]; }
+  .currency-input-field { @apply rounded-none border-0 bg-transparent focus:border-0 focus:ring-0; }
+  .tag-input-wrap { @apply relative; }
+  .tag-suggestions { @apply absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-48 overflow-y-auto rounded-md border border-[#d8d9d0] bg-white p-1 shadow-lg; }
+  .tag-suggestion { @apply block w-full rounded px-3 py-2 text-left text-xs font-normal text-[#555850] transition-colors hover:bg-[#f1f1ec] hover:text-[#242622]; }
   .modal-actions { @apply mt-2 border-t border-[#e3e3dd] pt-5; }
   .upload-box { @apply flex flex-col items-center gap-1.5 border border-dashed border-[#c5c7bd] p-[22px] text-[#8c8e85]; }
   .upload-box strong { @apply text-[13px] text-[#565951]; }
@@ -343,7 +354,7 @@
   .landing-phone-card-title { @apply font-display text-[13px] font-medium leading-none text-white; }
   .landing-phone-card-price { @apply mt-1 font-mono text-[11px] text-white/80; }
   .landing-phone-search { @apply mt-3 flex items-center gap-2 rounded-full border border-[#e3e3dd] bg-[#f7f7f3] px-3.5 py-2.5 text-xs text-[#85877d]; }
-  .landing-qr-card { @apply absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-[#d4d4cc] bg-white p-3 pr-4 shadow-[0_20px_48px_rgba(37,39,35,0.18)] md:bottom-auto md:left-0 md:top-[58%] md:translate-x-0 md:-translate-x-[44%] md:p-4 md:pr-5; }
+  .landing-qr-card { @apply absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-[#d4d4cc] bg-white p-3 pr-4 shadow-[0_20px_48px_rgba(37,39,35,0.18)] md:bottom-auto md:left-0 md:top-[58%] md:p-4 md:pr-5; }
   .landing-qr-grid span { @apply rounded-sm bg-white; }
   .landing-float-stat { @apply absolute -right-3 -top-3 hidden items-center gap-2 rounded-full border border-[#d4d4cc] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(37,39,35,0.12)] md:flex md:px-3.5 md:py-2.5; }
   .landing-strip { @apply border-y border-[#d4d4cc]/60 bg-white px-[5.6vw] py-12 md:py-16; }
@@ -459,7 +470,7 @@
    .superadmin-field input, .superadmin-field select, .superadmin-field textarea { @apply rounded-md border border-[#d8d9d0] bg-white px-3 py-2.5 text-[13px] text-[#242622] placeholder:text-[#a0a29a] focus:border-[#e75f45] focus:outline-none focus:ring-2 focus:ring-[#e75f45]/10; }
    .superadmin-field textarea { @apply min-h-[96px] resize-y font-mono text-xs leading-[1.5]; }
    .superadmin-table-meta { @apply border-b border-[#edede7] bg-[#fcfcf9] px-4 py-3 text-xs text-[#777970]; }
- 
+
   .superadmin-detail { @apply flex flex-col gap-8; }
   .superadmin-back { @apply inline-flex items-center gap-1.5 self-start rounded-full border border-[#e3e3dd] bg-white px-3 py-1.5 text-xs font-medium text-[#555850] hover:border-[#d4d4cc] hover:text-[#242622]; }
   .superadmin-detail .superadmin-intro { @apply mb-0; }
@@ -478,6 +489,8 @@
   .superadmin-manager-wrap { @apply flex flex-col gap-6; }
   .superadmin-manager-wrap .manager { @apply p-0; }
   .superadmin-manager-wrap .manager-intro { @apply mb-6; }
+  .menu-settings-restaurant-picker { @apply mb-5 max-w-sm; }
+  .menu-settings-restaurant-picker label { @apply grid gap-2 text-[11px] font-medium text-[#5d6058]; }
   .superadmin-settings-panel { @apply w-full p-0; }
   .superadmin-settings-card { @apply overflow-hidden p-0; }
   .superadmin-settings-card > .menu-settings-card-heading { @apply flex items-center justify-between gap-4 border-b border-[#edede7] p-6; }
@@ -496,6 +509,7 @@
   .settings-toggle-knob { @apply relative h-4 w-7 rounded-full bg-[#d8d9d0] transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-3 after:w-3 after:rounded-full after:bg-white after:shadow-sm after:transition-transform; }
   .settings-toggle.is-on .settings-toggle-knob { @apply bg-[#6aa373] after:translate-x-3; }
   .superadmin-promo-card { @apply mx-6 mt-6 rounded-lg border border-[#e3e3dd] bg-[#fafaf8] p-5; }
+  .superadmin-currency-card { @apply mx-6 mt-6 rounded-lg border border-[#e3e3dd] bg-[#fafaf8] p-5; }
   .superadmin-promo-header { @apply flex items-start justify-between gap-4; }
   .superadmin-promo-header .muted { @apply mt-1 text-[11px]; }
   .superadmin-promo-fields { @apply mt-5 grid gap-4; }
@@ -504,12 +518,12 @@
   .superadmin-settings-card > .settings-action-row { @apply mt-6 flex justify-end border-t border-[#edede7] px-6 pt-5 pb-6; }
 
   .waitlist-panel--superadmin { @apply p-0; }
- 
+
   .superadmin-detail-slug { @apply font-mono text-[#242622]; }
   .superadmin-detail-dot { @apply text-[#a0a29a]; }
   .superadmin-detail-owner { @apply font-mono text-[11px]; }
   .superadmin-detail-link { @apply ml-auto inline-flex items-center gap-1 text-xs font-medium text-[#e75f45] hover:text-[#d9533c]; }
-  
+
 
   .waitlist-panel--superadmin .waitlist-panel-head h2 { @apply text-[39px] font-semibold leading-none tracking-[-0.07em]; }
   .public-status {
@@ -576,8 +590,7 @@
 .item-detail-dialog[data-state="open"] .detail-chip-row { animation: dialog-inner-in 0.35s 0.18s both ease-out; }
 .item-detail-dialog[data-state="open"] .detail-block { animation: dialog-inner-in 0.35s 0.22s both ease-out; }
 .item-detail-dialog[data-state="open"] .detail-meta-row { animation: dialog-inner-in 0.35s 0.26s both ease-out; }
-.item-detail-dialog[data-state="open"] .detail-allergy-note { animation: dialog-inner-in 0.35s 0.30s both ease-out; }
- 
+
  @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -587,22 +600,27 @@
   }
 }
 
+@media (min-width: 768px) {
+  .landing-qr-card { translate: -50% 0 !important; }
+}
+
 @media (max-width: 700px) {
   .site-header { @apply h-[70px] px-5; }
+  .public-nav { @apply max-w-[66vw] gap-3 overflow-x-auto; scrollbar-width: none; }
+  .public-nav::-webkit-scrollbar { display: none; }
+  .public-nav a { @apply text-[10px]; }
   .header-actions .dark-button { @apply hidden; }
   .hero { @apply px-5 pb-[73px] pt-[60px]; }
   .hero--with-visual { @apply grid-cols-1; }
   .hero-visual { @apply hidden; }
   .promo-top { @apply mx-5; }
   .specials-strip { @apply mx-5; }
-  .allergen-legend { @apply mx-5; }
   .halal-certification { @apply mx-5; }
   .find-us { @apply mx-5; }
   .hero--with-visual { @apply grid-cols-1; }
   .hero-visual { @apply hidden; }
   .promo-top { @apply mx-5; }
   .specials-strip { @apply mx-5; }
-  .allergen-legend { @apply mx-5; }
   .find-us { @apply mx-5; }
   .hero-display { @apply mt-6 text-[52px]; }
   .hero-copy { @apply text-base; }
@@ -630,6 +648,10 @@
   .card-content { @apply p-[15px]; }
   .card-title-row h3 { @apply text-xl; }
   .site-footer { @apply mx-5; }
+  .menu-item-page { @apply max-w-none; }
+  .menu-item-page-header h1 { @apply text-[34px]; }
+  .menu-item-form { @apply p-4; }
+  .menu-item-form-actions { @apply flex-wrap; }
   .admin-shell { @apply gap-0 p-0; }
   .admin-sidebar { @apply hidden; }
   .admin-heading-title { @apply text-[17px]; }
@@ -650,10 +672,12 @@
   .item-cell { @apply col-span-full; }
   .superadmin-settings-card > .menu-settings-fields,
   .superadmin-promo-fields .menu-settings-fields { @apply grid-cols-1; }
+  .form-split { @apply grid-cols-1; }
   .superadmin-settings-card > .menu-settings-card-heading,
   .superadmin-settings-card > .menu-settings-fields,
   .superadmin-settings-card > label,
-  .superadmin-promo-card { @apply mx-0; }
+  .superadmin-promo-card,
+  .superadmin-currency-card { @apply mx-0; }
   .superadmin-settings-card > .settings-action-row { @apply px-0; }
   .table-category, .table-price, .table-row > span:nth-child(4) { @apply text-[11px]; }
   .table-row > span:nth-child(4) { @apply justify-self-end; }

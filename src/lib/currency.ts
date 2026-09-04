@@ -39,11 +39,22 @@ function localeMap(lang: string): string {
   return lang;
 }
 
+const CURRENCY_PREFIX: Record<string, string> = {
+  IDR: "Rp",
+  USD: "$",
+  EUR: "€",
+  SGD: "S$",
+  MYR: "RM",
+  JPY: "¥",
+};
+
 export function currencySymbol(currency: string): string {
+  const cur = (currency || "IDR").toUpperCase();
+  if (CURRENCY_PREFIX[cur]) return CURRENCY_PREFIX[cur];
   try {
-    const parts = new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).formatToParts(0);
-    return parts.find((p) => p.type === "currency")?.value ?? currency;
+    const parts = new Intl.NumberFormat("en-US", { style: "currency", currency: cur }).formatToParts(0);
+    return parts.find((p) => p.type === "currency")?.value ?? cur;
   } catch {
-    return currency;
+    return cur;
   }
 }

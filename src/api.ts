@@ -67,7 +67,7 @@ export async function fetchAdminRestaurants() {
   return request<{ restaurants: AdminRestaurant[] }>('/api/admin/restaurants')
 }
 
-export function createAdminRestaurant(input: Pick<AdminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo'>) {
+export function createAdminRestaurant(input: Pick<AdminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo' | 'currency'>) {
   return request<{ restaurant: AdminRestaurant }>('/api/admin/restaurants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
 }
 
@@ -108,7 +108,7 @@ export async function fetchPublicMenu(slug: string): Promise<Restaurant> {
 }
 
 export function createAdminItem(item: MenuItem, restaurantId?: string) {
-  return request<{ ok: boolean }>(`/api/admin/items${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, allergens: item.allergens, mayContain: item.mayContain, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
+  return request<{ ok: boolean }>(`/api/admin/items${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
 }
 
 export function archiveAdminItem(id: string, restaurantId?: string) {
@@ -119,8 +119,8 @@ export function restoreAdminItem(id: string, restaurantId?: string) {
   return request<{ ok: boolean }>(`/api/admin/items/${id}${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'DRAFT' }) })
 }
 
-export function updateAdminItem(item: Pick<MenuItem, 'id' | 'name' | 'description' | 'price' | 'category' | 'tag' | 'imageKey' | 'ingredients' | 'allergens' | 'mayContain' | 'dietaryTags' | 'halalStatus' | 'spiceLevel' | 'isSpecial'>, restaurantId?: string) {
-  return request<{ ok: boolean }>(`/api/admin/items/${item.id}${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, allergens: item.allergens, mayContain: item.mayContain, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
+export function updateAdminItem(item: Pick<MenuItem, 'id' | 'name' | 'description' | 'price' | 'category' | 'tag' | 'imageKey' | 'ingredients' | 'dietaryTags' | 'halalStatus' | 'spiceLevel' | 'isSpecial'>, restaurantId?: string) {
+  return request<{ ok: boolean }>(`/api/admin/items/${item.id}${restaurantId ? `?restaurantId=${encodeURIComponent(restaurantId)}` : ''}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
 }
 
 export function publishAdminItem(id: string, restaurantId?: string) {
@@ -182,7 +182,7 @@ export function fetchSuperadminRestaurants() {
   return request<{ restaurants: SuperadminRestaurant[] }>('/api/superadmin/restaurants')
 }
 
-export function createSuperadminRestaurant(input: Pick<SuperadminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours'>) {
+export function createSuperadminRestaurant(input: Pick<SuperadminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'currency'>) {
   return request<{ restaurant: SuperadminRestaurant }>('/api/superadmin/restaurants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
 }
 
@@ -190,7 +190,7 @@ export function createSuperadminRestaurant(input: Pick<SuperadminRestaurant, 'sl
 export function fetchSuperadminRestaurant(id: string) {
   return request<{ restaurant: SuperadminRestaurant }>(`/api/superadmin/restaurants/${encodeURIComponent(id)}`)
 }
-export function updateSuperadminRestaurant(id: string, input: Pick<SuperadminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo'>) {
+export function updateSuperadminRestaurant(id: string, input: Pick<SuperadminRestaurant, 'slug' | 'name' | 'description' | 'address' | 'hours' | 'story' | 'phone' | 'instagram' | 'hoursDetail' | 'promo' | 'currency'>) {
   return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
 }
 export function deleteSuperadminRestaurant(id: string) {
@@ -204,10 +204,10 @@ export async function fetchSuperadminItems(restaurantId: string) {
   return { items: result.items.map(item => ({ ...item, image: imageFor(item, false, true) })) }
 }
 export function createSuperadminItem(restaurantId: string, item: MenuItem) {
-  return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, allergens: item.allergens, mayContain: item.mayContain, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
+  return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
 }
-export function updateSuperadminItem(restaurantId: string, item: Pick<MenuItem, 'id' | 'name' | 'description' | 'price' | 'category' | 'tag' | 'imageKey' | 'ingredients' | 'allergens' | 'mayContain' | 'dietaryTags' | 'halalStatus' | 'spiceLevel' | 'isSpecial'>) {
-  return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items/${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, allergens: item.allergens, mayContain: item.mayContain, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
+export function updateSuperadminItem(restaurantId: string, item: Pick<MenuItem, 'id' | 'name' | 'description' | 'price' | 'category' | 'tag' | 'imageKey' | 'ingredients' | 'dietaryTags' | 'halalStatus' | 'spiceLevel' | 'isSpecial'>) {
+  return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items/${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name, description: item.description, price: Number(item.price), category: item.category, tag: item.tag, imageKey: item.imageKey, ingredients: item.ingredients, dietaryTags: item.dietaryTags, halalStatus: item.halalStatus, spiceLevel: item.spiceLevel, isSpecial: item.isSpecial }) })
 }
 export function archiveSuperadminItem(restaurantId: string, id: string) {
   return request<{ ok: boolean }>(`/api/superadmin/restaurants/${encodeURIComponent(restaurantId)}/items/${encodeURIComponent(id)}`, { method: 'DELETE' })

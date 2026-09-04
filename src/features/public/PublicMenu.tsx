@@ -25,7 +25,6 @@ import {
 } from "../../components/ui/dialog";
 import { ApiError, fetchPublicMenu } from "../../api";
 import {
-  allergenOptions,
   categories,
   dietaryTagOptions,
   restaurants,
@@ -80,9 +79,6 @@ export function PublicMenu({
   const restaurantQuery = useQuery({
     queryKey: ["public-menu", slug],
     queryFn: () => fetchPublicMenu(slug),
-    // Seed known fixtures instantly (demo home); unknown slugs must wait for
-    // the API so a real 404 can surface instead of flashing another menu.
-    initialData: restaurants[slug],
     refetchOnMount: "always",
   });
   const restaurant = restaurantQuery.data;
@@ -235,6 +231,8 @@ export function PublicMenu({
     return t("closedUntil", { day, time: formatClock(hoursStatus.openingAt ?? 0) });
   })();
   const banner = (restaurant as unknown as { banner?: { type: string; promo?: { title: string; description?: string; badge?: string }; announcement?: string; dismissible?: boolean } | null })?.banner
+  const specials = restaurant.items.filter(i => i.isSpecial);
+  const hasHalalCertification = Boolean(restaurant.halalCertificationNumber || restaurant.halalCertificateImageKey);
   const filtered = restaurant.items.filter(
     (item) =>
       (active === "Semua" || item.category === active) &&
@@ -263,16 +261,13 @@ export function PublicMenu({
        })()}
       <header className="site-header">
         <Logo dark />
-        <div className="header-actions">
-          <button
-            className="icon-button"
-            aria-label={t("search")}
-            onClick={focusMenuSearch}
-          >
-            <Search size={19} />
-          </button>
-         </div>
-       </header>
+        <nav className="public-nav" aria-label={t("sectionNavigation")}>
+          {specials.length > 0 && <a href="#specials">{t("navSpecials")}</a>}
+          <a href="#menu">{t("navMenu")}</a>
+          {hasHalalCertification && <a href="#halal">{t("navHalal")}</a>}
+          <a href="#find-us">{t("navFindUs")}</a>
+        </nav>
+      </header>
       {restaurant.promo && (
         <>
           <div className="promo-top gsap-menu-eyebrow">
@@ -355,7 +350,6 @@ export function PublicMenu({
         </div>
       </section>
       {(() => {
-        const specials = restaurant.items.filter(i => i.isSpecial);
         if (!specials.length) return null;
         return (
           <section id="specials" className="specials-strip gsap-menu-reveal">
@@ -475,7 +469,7 @@ export function PublicMenu({
       </section>
 
       {(restaurant.halalCertificationNumber || restaurant.halalCertificateImageKey) && (
-        <section className="halal-certification gsap-menu-reveal">
+        <section id="halal" className="halal-certification gsap-menu-reveal">
           <div className="halal-certification-heading">
             <p className="halal-certification-kicker"><ShieldCheck size={14} /> {t("halalCertification")}</p>
             <h2>{t("halalCertificationTitle")}</h2>
@@ -495,16 +489,8 @@ export function PublicMenu({
           </div>
         </section>
       )}
-      <section className="allergen-legend gsap-menu-reveal">
-        <p className="allergen-legend-kicker"><Sparkles size={12} /> {t("allergyInfo")}</p>
-        <p className="allergen-legend-copy">{t("allergyCopy")}</p>
-        <div className="allergen-legend-tags">
-          {allergenOptions.slice(0, 8).map(o => <span key={o.value} className="allergen-legend-tag">{o.label}</span>)}
-          <span className="allergen-legend-tag allergen-legend-tag--more">+ {allergenOptions.length - 8} more</span>
-        </div>
-      </section>
 
-      <section className="find-us gsap-menu-reveal">
+      <section id="find-us" className="find-us gsap-menu-reveal">
         <div className="find-us-card">
           <div className="find-us-main">
             <p className="section-kicker">{t("findUs")}</p>
@@ -608,8 +594,6 @@ function MenuItemDetailDialog({ item, open, onClose, phone, currency }: { item: 
         </DialogHeader>
         {dietaryLabels.length > 0 && <div className="detail-chip-row">{dietaryLabels.map(label => <span className="detail-chip" key={label}>{label}</span>)}</div>}
         {item.ingredients && <div className="detail-block"><p className="detail-block-label">{t("ingredients")}</p><p>{item.ingredients}</p></div>}
-        {(item.allergens?.length ?? 0) > 0 && <div className="detail-block"><p className="detail-block-label">{t("contains")}</p><p>{item.allergens?.map(allergen => optionLabel(allergenOptions, allergen)).join(", ")}</p></div>}
-        {(item.mayContain?.length ?? 0) > 0 && <div className="detail-block"><p className="detail-block-label">{t("mayContain")}</p><p>{item.mayContain?.map(allergen => optionLabel(allergenOptions, allergen)).join(", ")}</p></div>}
         {spiceLabel && <div className="detail-meta-row"><span><strong>{t("spice")}</strong>{spiceLabel}</span></div>}
         {phone && (
           <div className="detail-actions">
@@ -618,7 +602,6 @@ function MenuItemDetailDialog({ item, open, onClose, phone, currency }: { item: 
             </a>
           </div>
         )}
-        <p className="detail-allergy-note">{t("allergyNote")}</p>
       </DialogContent>
     </Dialog>
   );

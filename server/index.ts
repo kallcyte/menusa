@@ -44,9 +44,8 @@ function imageResponse(object: R2ObjectBody) {
 function normalizeMenuItem(row: Record<string, unknown>) {
   return {
     ...row,
+    imageKey: typeof row.imageKey === 'string' ? row.imageKey : undefined,
     ingredients: typeof row.ingredients === 'string' ? row.ingredients : '',
-    allergens: parseJsonArray(row.allergens),
-    mayContain: parseJsonArray(row.mayContain),
     dietaryTags: parseJsonArray(row.dietaryTags),
     halalStatus: row.halalStatus || 'UNKNOWN',
     spiceLevel: typeof row.spiceLevel === 'string' && row.spiceLevel !== 'null' ? row.spiceLevel : undefined,
@@ -282,7 +281,7 @@ app.get('/api/superadmin/restaurants', async (c) => {
   const { session, role } = await getSessionAndRole(c)
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
-  const { results } = await c.env.DB.prepare('SELECT r.id, r.slug, r.name, r.description, r.address, r.hours, r.published, r.owner_id as ownerId, u.email as ownerEmail, r.created_at as createdAt FROM restaurants r LEFT JOIN user u ON u.id = r.owner_id ORDER BY r.created_at DESC LIMIT 500').all()
+  const { results } = await c.env.DB.prepare('SELECT r.id, r.slug, r.name, r.description, r.address, r.hours, r.published, r.currency, r.owner_id as ownerId, u.email as ownerEmail, r.created_at as createdAt FROM restaurants r LEFT JOIN user u ON u.id = r.owner_id ORDER BY r.created_at DESC LIMIT 500').all()
   return c.json({ restaurants: results })
 })
 app.patch('/api/superadmin/restaurants/:id/owner', zValidator('json', z.object({ ownerId: z.string().min(1), removePreviousOwnerAccess: z.boolean().default(true) })), async (c) => {
@@ -387,7 +386,7 @@ app.post('/api/superadmin/restaurants', zValidator('json', createRestaurantSchem
   if (duplicate) return c.json({ error: 'That slug is already in use' }, 409)
   const id = crypto.randomUUID()
   const ownerId = (session.user as unknown as { id: string }).id
-  await c.env.DB.prepare('INSERT INTO restaurants (id, owner_id, slug, name, description, address, hours, story, phone, instagram, hours_detail, halal_certification_authority, halal_certification_number, halal_certificate_image_key, promo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, ownerId, input.slug, input.name, input.description, input.address, input.hours, (input as Record<string, unknown>).story as string ?? '', (input as Record<string, unknown>).phone as string ?? '', (input as Record<string, unknown>).instagram as string ?? '', (input as Record<string, unknown>).hoursDetail as string ?? '', (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : '').run()
+  await c.env.DB.prepare('INSERT INTO restaurants (id, owner_id, slug, name, description, address, hours, story, phone, instagram, hours_detail, halal_certification_authority, halal_certification_number, halal_certificate_image_key, promo, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, ownerId, input.slug, input.name, input.description, input.address, input.hours, (input as Record<string, unknown>).story as string ?? '', (input as Record<string, unknown>).phone as string ?? '', (input as Record<string, unknown>).instagram as string ?? '', (input as Record<string, unknown>).hoursDetail as string ?? '', (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : '', input.currency ?? 'IDR').run()
   return c.json({ restaurant: { id, ...input, published: 0 } }, 201)
 })
 
@@ -396,7 +395,7 @@ app.get('/api/superadmin/restaurants/:id', async (c) => {
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   if (role !== 'superadmin') return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
-  const restaurant = await c.env.DB.prepare('SELECT id, slug, name, description, address, hours, story, phone, instagram, hours_detail as hoursDetail, halal_certification_authority as halalCertificationAuthority, halal_certification_number as halalCertificationNumber, halal_certificate_image_key as halalCertificateImageKey, promo, published, owner_id as ownerId, created_at as createdAt FROM restaurants WHERE id = ?').bind(id).first()
+  const restaurant = await c.env.DB.prepare('SELECT id, slug, name, description, address, hours, story, phone, instagram, hours_detail as hoursDetail, halal_certification_authority as halalCertificationAuthority, halal_certification_number as halalCertificationNumber, halal_certificate_image_key as halalCertificateImageKey, promo, currency, published, owner_id as ownerId, created_at as createdAt FROM restaurants WHERE id = ?').bind(id).first()
   if (!restaurant) return c.json({ error: 'Restaurant not found' }, 404)
   const promo = (() => { try { const v = (restaurant as Record<string, unknown>).promo ? JSON.parse((restaurant as Record<string, unknown>).promo as string) : null; return v && v.title ? v : null; } catch { return null; } })()
   return c.json({ restaurant: { ...restaurant, promo } })
@@ -412,7 +411,7 @@ app.patch('/api/superadmin/restaurants/:id', zValidator('json', restaurantSettin
   if (!exists) return c.json({ error: 'Restaurant not found' }, 404)
   const duplicate = await c.env.DB.prepare('SELECT id FROM restaurants WHERE slug = ? AND id != ? LIMIT 1').bind(input.slug, id).first()
   if (duplicate) return c.json({ error: 'That slug is already in use' }, 409)
-  await c.env.DB.prepare('UPDATE restaurants SET slug = ?, name = COALESCE(?, name), description = COALESCE(?, description), address = COALESCE(?, address), hours = COALESCE(?, hours), story = COALESCE(?, story), phone = COALESCE(?, phone), instagram = COALESCE(?, instagram), hours_detail = COALESCE(?, hours_detail), halal_certification_authority = ?, halal_certification_number = ?, halal_certificate_image_key = ?, promo = COALESCE(?, promo), updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(input.slug, input.name ?? null, input.description ?? null, input.address ?? null, input.hours ?? null, (input as Record<string, unknown>).story ?? null, (input as Record<string, unknown>).phone ?? null, (input as Record<string, unknown>).instagram ?? null, (input as Record<string, unknown>).hoursDetail ?? null, (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : null, id).run()
+  await c.env.DB.prepare('UPDATE restaurants SET slug = ?, name = COALESCE(?, name), description = COALESCE(?, description), address = COALESCE(?, address), hours = COALESCE(?, hours), story = COALESCE(?, story), phone = COALESCE(?, phone), instagram = COALESCE(?, instagram), hours_detail = COALESCE(?, hours_detail), halal_certification_authority = ?, halal_certification_number = ?, halal_certificate_image_key = ?, currency = COALESCE(?, currency), promo = COALESCE(?, promo), updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(input.slug, input.name ?? null, input.description ?? null, input.address ?? null, input.hours ?? null, (input as Record<string, unknown>).story ?? null, (input as Record<string, unknown>).phone ?? null, (input as Record<string, unknown>).instagram ?? null, (input as Record<string, unknown>).hoursDetail ?? null, (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', input.currency ?? null, (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : null, id).run()
   return c.json({ ok: true, ...input })
 })
 
@@ -435,7 +434,7 @@ app.get('/api/superadmin/restaurants/:id/items', async (c) => {
   const id = c.req.param('id')
   const exists = await c.env.DB.prepare('SELECT id FROM restaurants WHERE id = ?').bind(id).first()
   if (!exists) return c.json({ error: 'Restaurant not found' }, 404)
-  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, CASE WHEN archived = 1 THEN 'ARCHIVED' ELSE status END AS status, sort_order as sortOrder, archived, ingredients, allergens, may_contain as mayContain, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? ORDER BY CASE WHEN archived = 1 THEN 2 WHEN status = 'DRAFT' THEN 0 ELSE 1 END, sort_order ASC, created_at DESC").bind(id).all()
+  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, CASE WHEN archived = 1 THEN 'ARCHIVED' ELSE status END AS status, sort_order as sortOrder, archived, ingredients, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? ORDER BY CASE WHEN archived = 1 THEN 2 WHEN status = 'DRAFT' THEN 0 ELSE 1 END, sort_order ASC, created_at DESC").bind(id).all()
   return c.json({ items: results.map(item => normalizeMenuItem(item as Record<string, unknown>)) })
 })
 
@@ -447,7 +446,7 @@ app.post('/api/superadmin/restaurants/:id/items', zValidator('json', menuItemSch
   const exists = await c.env.DB.prepare('SELECT id FROM restaurants WHERE id = ?').bind(restaurantId).first()
   if (!exists) return c.json({ error: 'Restaurant not found' }, 404)
   const input = c.req.valid('json')
-  await c.env.DB.prepare("INSERT INTO menu_items (restaurant_id, name, description, price, category, image_key, tag, ingredients, allergens, may_contain, dietary_tags, halal_status, spice_level, status, is_special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)").bind(restaurantId, input.name, input.description, input.price, input.category, input.imageKey ?? null, input.tag ?? null, input.ingredients ?? '', JSON.stringify(input.allergens ?? []), JSON.stringify(input.mayContain ?? []), JSON.stringify(input.dietaryTags ?? []), input.halalStatus ?? 'UNKNOWN', input.spiceLevel ?? null, (input as Record<string, unknown>).isSpecial ? 1 : 0).run()
+  await c.env.DB.prepare("INSERT INTO menu_items (restaurant_id, name, description, price, category, image_key, tag, ingredients, dietary_tags, halal_status, spice_level, status, is_special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)").bind(restaurantId, input.name, input.description, input.price, input.category, input.imageKey ?? null, input.tag ?? null, input.ingredients ?? '', JSON.stringify(input.dietaryTags ?? []), input.halalStatus ?? 'UNKNOWN', input.spiceLevel ?? null, (input as Record<string, unknown>).isSpecial ? 1 : 0).run()
   return c.json({ ok: true }, 201)
 })
 
@@ -463,8 +462,8 @@ app.patch('/api/superadmin/restaurants/:id/items/:itemId', zValidator('json', me
   if (input.status === 'PUBLISHED' && current.archived) return c.json({ error: 'Restore the item before publishing it' }, 409)
   const fields = Object.entries(input)
   if (!fields.length) return c.json({ ok: true })
-  const columnMap: Record<string, string> = { imageKey: 'image_key', mayContain: 'may_contain', dietaryTags: 'dietary_tags', halalStatus: 'halal_status', spiceLevel: 'spice_level', sortOrder: 'sort_order', isSpecial: 'is_special' }
-  const jsonFields: Record<string, true> = { allergens: true, mayContain: true, dietaryTags: true }
+  const columnMap: Record<string, string> = { imageKey: 'image_key', dietaryTags: 'dietary_tags', halalStatus: 'halal_status', spiceLevel: 'spice_level', sortOrder: 'sort_order', isSpecial: 'is_special' }
+  const jsonFields: Record<string, true> = { dietaryTags: true }
   const boolFields: Record<string, true> = { isSpecial: true }
   const set = fields.map(([key]) => `${columnMap[key] ?? key} = ?`).join(', ')
   const archiveClause = input.status === 'DRAFT' ? ', archived = 0' : input.status === 'ARCHIVED' ? ', archived = 1' : ''
@@ -569,7 +568,7 @@ app.get('/api/menu/:slug', async c => {
     return type !== 'none' ? { type, announcement: bannerAnnouncement ?? undefined, dismissible: Boolean(bannerDismissible ?? 1) } : null
   })()
   if (published === 0) return c.json({ restaurant: { ...publicRestaurant, promo, currency: (currency as string) || 'IDR', banner, menuVisible: false }, items: [] })
-  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, status, ingredients, allergens, may_contain as mayContain, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? AND status = 'PUBLISHED' AND archived = 0 ORDER BY sort_order ASC").bind((restaurant as unknown as { id: string }).id).all()
+  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, status, ingredients, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? AND status = 'PUBLISHED' AND archived = 0 ORDER BY sort_order ASC").bind((restaurant as unknown as { id: string }).id).all()
   // Compute effectivePrice from active promos
   let activePromos: Array<Record<string, unknown>> = []
   try {
@@ -613,7 +612,7 @@ app.get('/api/images/*', async c => {
 app.get('/api/admin/items', async c => {
   const restaurant = await getOwnedRestaurant(c)
   if (!restaurant) return c.json({ error: 'Unauthorized' }, 401)
-  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, CASE WHEN archived = 1 THEN 'ARCHIVED' ELSE status END AS status, sort_order as sortOrder, archived, ingredients, allergens, may_contain as mayContain, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? ORDER BY CASE WHEN archived = 1 THEN 2 WHEN status = 'DRAFT' THEN 0 ELSE 1 END, sort_order ASC, created_at DESC").bind(restaurant.id).all()
+  const { results } = await c.env.DB.prepare("SELECT id, name, description, price, category, image_key as imageKey, tag, CASE WHEN archived = 1 THEN 'ARCHIVED' ELSE status END AS status, sort_order as sortOrder, archived, ingredients, dietary_tags as dietaryTags, halal_status as halalStatus, spice_level as spiceLevel, is_special as isSpecial FROM menu_items WHERE restaurant_id = ? ORDER BY CASE WHEN archived = 1 THEN 2 WHEN status = 'DRAFT' THEN 0 ELSE 1 END, sort_order ASC, created_at DESC").bind(restaurant.id).all()
   return c.json({ items: results.map(item => normalizeMenuItem(item as Record<string, unknown>)) })
 })
 app.get('/api/admin/restaurants', async c => {
@@ -632,7 +631,7 @@ app.post('/api/admin/restaurants', zValidator('json', createRestaurantSchema), a
   const duplicate = await c.env.DB.prepare('SELECT id FROM restaurants WHERE slug = ? LIMIT 1').bind(input.slug).first()
   if (duplicate) return c.json({ error: 'That slug is already in use' }, 409)
   const id = crypto.randomUUID()
-  await c.env.DB.prepare('INSERT INTO restaurants (id, owner_id, slug, name, description, address, hours, story, phone, instagram, hours_detail, halal_certification_authority, halal_certification_number, halal_certificate_image_key, promo, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, session.user.id, input.slug, input.name, input.description, input.address, input.hours, (input as Record<string, unknown>).story as string ?? '', (input as Record<string, unknown>).phone as string ?? '', (input as Record<string, unknown>).instagram as string ?? '', (input as Record<string, unknown>).hoursDetail as string ?? '', (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : '', 'IDR').run()
+  await c.env.DB.prepare('INSERT INTO restaurants (id, owner_id, slug, name, description, address, hours, story, phone, instagram, hours_detail, halal_certification_authority, halal_certification_number, halal_certificate_image_key, promo, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, session.user.id, input.slug, input.name, input.description, input.address, input.hours, (input as Record<string, unknown>).story as string ?? '', (input as Record<string, unknown>).phone as string ?? '', (input as Record<string, unknown>).instagram as string ?? '', (input as Record<string, unknown>).hoursDetail as string ?? '', (input as Record<string, unknown>).halalCertificationAuthority ?? '', (input as Record<string, unknown>).halalCertificationNumber ?? '', (input as Record<string, unknown>).halalCertificateImageKey ?? '', (input as Record<string, unknown>).promo !== undefined ? JSON.stringify((input as Record<string, unknown>).promo) : '', input.currency ?? 'IDR').run()
   return c.json({ restaurant: { id, ...input, published: 0 } }, 201)
 })
 
@@ -657,7 +656,7 @@ app.post('/api/admin/items', zValidator('json', menuItemSchema), async c => {
   const restaurant = await getOwnedRestaurant(c)
   if (!restaurant) return c.json({ error: 'Restaurant not found' }, 404)
   const input = c.req.valid('json')
-  await c.env.DB.prepare("INSERT INTO menu_items (restaurant_id, name, description, price, category, image_key, tag, ingredients, allergens, may_contain, dietary_tags, halal_status, spice_level, status, is_special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)").bind(restaurant.id, input.name, input.description, input.price, input.category, input.imageKey ?? null, input.tag ?? null, input.ingredients ?? '', JSON.stringify(input.allergens ?? []), JSON.stringify(input.mayContain ?? []), JSON.stringify(input.dietaryTags ?? []), input.halalStatus ?? 'UNKNOWN', input.spiceLevel ?? null, (input as Record<string, unknown>).isSpecial ? 1 : 0).run()
+  await c.env.DB.prepare("INSERT INTO menu_items (restaurant_id, name, description, price, category, image_key, tag, ingredients, dietary_tags, halal_status, spice_level, status, is_special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)").bind(restaurant.id, input.name, input.description, input.price, input.category, input.imageKey ?? null, input.tag ?? null, input.ingredients ?? '', JSON.stringify(input.dietaryTags ?? []), input.halalStatus ?? 'UNKNOWN', input.spiceLevel ?? null, (input as Record<string, unknown>).isSpecial ? 1 : 0).run()
   return c.json({ ok: true }, 201)
 })
 
@@ -670,8 +669,8 @@ app.patch('/api/admin/items/:id', zValidator('json', menuItemSchema.partial()), 
   if (input.status === 'PUBLISHED' && current.archived) return c.json({ error: 'Restore the item before publishing it' }, 409)
   const fields = Object.entries(input)
   if (!fields.length) return c.json({ ok: true })
-  const columnMap: Record<string, string> = { imageKey: 'image_key', mayContain: 'may_contain', dietaryTags: 'dietary_tags', halalStatus: 'halal_status', spiceLevel: 'spice_level', sortOrder: 'sort_order', isSpecial: 'is_special' }
-  const jsonFields: Record<string, true> = { allergens: true, mayContain: true, dietaryTags: true }
+  const columnMap: Record<string, string> = { imageKey: 'image_key', dietaryTags: 'dietary_tags', halalStatus: 'halal_status', spiceLevel: 'spice_level', sortOrder: 'sort_order', isSpecial: 'is_special' }
+  const jsonFields: Record<string, true> = { dietaryTags: true }
   const boolFields: Record<string, true> = { isSpecial: true }
   const set = fields.map(([key]) => `${columnMap[key] ?? key} = ?`).join(', ')
   const archiveClause = input.status === 'DRAFT' ? ', archived = 0' : input.status === 'ARCHIVED' ? ', archived = 1' : ''

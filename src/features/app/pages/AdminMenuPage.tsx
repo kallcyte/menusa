@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { fetchAdminItems, fetchAdminRestaurants, unpublishAdminMenu } from "../../../api"
 import { errorMessage } from "../../shared"
-import { makeAddItem, makeItemActions, makePublishAll, makeReorderItem, makeReorderTo, makeRunItemAction, makeUpdateItem, type MutationDeps } from "../../workspace/mutations"
+import { makeItemActions, makePublishAll, makeReorderItem, makeReorderTo, makeRunItemAction, type MutationDeps } from "../../workspace/mutations"
 import { MenuManager } from "../../workspace/MenuManager"
-import { AddItemModal } from "../../workspace/AddItemModal"
 import { useToast } from "../../../components/ui/toast"
 
 export function AdminMenuPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const { toast } = useToast()
-  const [showAdd, setShowAdd] = useState(false)
   const [published, setPublished] = useState(true)
   const [restaurantId, setRestaurantId] = useState("")
 
@@ -35,8 +35,6 @@ export function AdminMenuPage() {
   const deps: MutationDeps = { queryClient, restaurantId: selectedRestaurant?.id ?? restaurantId, slug: selectedRestaurant?.slug ?? "le-resto", published, setPublished, toast }
   const runItemAction = makeRunItemAction(deps)
   const itemActions = makeItemActions(deps, runItemAction)
-  const addItem = makeAddItem(deps)
-  const updateItem = makeUpdateItem(deps)
   const publishAll = makePublishAll(deps)
   const reorderTo = makeReorderTo(deps)
   const reorderItem = makeReorderItem(deps)
@@ -52,39 +50,38 @@ export function AdminMenuPage() {
   }
 
   return (
-    <>
-      <MenuManager
-        items={items}
-        onAdd={() => setShowAdd(true)}
-        onArchive={itemActions.archive}
-        onRestore={itemActions.restore}
-        onUpdate={updateItem}
-        onPublishItem={itemActions.publish}
-        onDraftItem={itemActions.draft}
-        onReorder={reorderItem}
-        onReorderTo={reorderTo}
-        onPublish={publishAll}
-        onUnpublish={async () => {
-          if (!selectedRestaurant) return false
-          try {
-            await unpublishAdminMenu(selectedRestaurant.id)
-            setPublished(false)
-            queryClient.invalidateQueries({ queryKey: ["admin", "restaurants"] })
-            queryClient.invalidateQueries({ queryKey: ["public-menu", selectedRestaurant.slug] })
-            toast({ title: "Menu disembunyikan", description: "Menu publik sekarang tidak terlihat." })
-            return true
-          } catch (err) {
-            toast({ variant: "error", title: "Gagal menyembunyikan", description: errorMessage(err, "Coba lagi.") })
-            return false
-          }
-        }}
-        published={published}
-        loading={itemsQuery.isFetching}
-        loadingInitial={itemsQuery.isPending && !itemsQuery.error}
-        loadError={itemsQuery.error instanceof Error ? itemsQuery.error.message : null}
-        onRetry={() => itemsQuery.refetch()}
-      />
-      {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={(item) => addItem(item).then((saved) => { if (saved) setShowAdd(false) })} />}
-    </>
+    <MenuManager
+      items={items}
+      currency={selectedRestaurant.currency}
+      onAdd={() => void navigate({ to: "/admin/add", search: { restaurantId: selectedRestaurant.id } as never })}
+      onEdit={(item) => void navigate({ to: "/admin/edit/$itemId", params: { itemId: item.id }, search: { restaurantId: selectedRestaurant.id } as never })}
+      onArchive={itemActions.archive}
+      onRestore={itemActions.restore}
+      onPublishItem={itemActions.publish}
+      onDraftItem={itemActions.draft}
+      onReorder={reorderItem}
+      onReorderTo={reorderTo}
+      onPublish={publishAll}
+      onUnpublish={async () => {
+        if (!selectedRestaurant) return false
+        try {
+          await unpublishAdminMenu(selectedRestaurant.id)
+          setPublished(false)
+          queryClient.invalidateQueries({ queryKey: ["admin", "restaurants"] })
+          queryClient.invalidateQueries({ queryKey: ["public-menu", selectedRestaurant.slug] })
+          toast({ title: "Menu disembunyikan", description: "Menu publik sekarang tidak terlihat." })
+          return true
+        } catch (err) {
+          toast({ variant: "error", title: "Gagal menyembunyikan", description: errorMessage(err, "Coba lagi.") })
+          return false
+        }
+      }}
+      published={published}
+      loading={itemsQuery.isFetching}
+      loadingInitial={itemsQuery.isPending && !itemsQuery.error}
+      loadError={itemsQuery.error instanceof Error ? itemsQuery.error.message : null}
+      onRetry={() => itemsQuery.refetch()}
+    />
   )
+
 }

@@ -75,8 +75,8 @@ test('GET /api/menu/:slug returns restaurant and published items', async () => {
   const env = fakeEnvPublic({
     restaurant: { id: 'r1', slug: 'salt-ember', name: 'Salt & Ember', description: 'Shoreline menu', address: '14 Harbour Lane', hours: 'Open until 11 PM' },
     items: [
-      { id: 'i1', name: 'Charred octopus', description: 'Saffron potato', price: 18, category: 'From the sea', imageKey: null, tag: null, status: 'PUBLISHED', ingredients: '', allergens: '[]', mayContain: '[]', dietaryTags: '[]', halalStatus: 'UNKNOWN', spiceLevel: null },
-      { id: 'i2', name: 'Miso aubergine', description: 'Sesame', price: 16, category: 'Small plates', imageKey: null, tag: 'Plant-based', status: 'PUBLISHED', ingredients: 'Aubergine, miso', allergens: '["soya"]', mayContain: '[]', dietaryTags: '["VEGAN"]', halalStatus: 'HALAL_INGREDIENTS', spiceLevel: 'MILD' },
+      { id: 'i1', name: 'Charred octopus', description: 'Saffron potato', price: 18, category: 'From the sea', imageKey: null, tag: null, status: 'PUBLISHED', ingredients: '', dietaryTags: '[]', halalStatus: 'UNKNOWN', spiceLevel: null },
+      { id: 'i2', name: 'Miso aubergine', description: 'Sesame', price: 16, category: 'Small plates', imageKey: null, tag: 'Plant-based', status: 'PUBLISHED', ingredients: 'Aubergine, miso', dietaryTags: '["VEGAN"]', halalStatus: 'HALAL_INGREDIENTS', spiceLevel: 'MILD' },
     ],
   })
   const res = await app.request('/api/menu/salt-ember', undefined, env)
@@ -91,18 +91,16 @@ test('GET /api/menu/:slug returns restaurant and published items', async () => {
   assert.equal(body.items[0].name, 'Charred octopus')
 })
 
-test('GET /api/menu/:slug normalizes allergens and dietary tags from JSON strings', async () => {
+test('GET /api/menu/:slug normalizes dietary tags from JSON strings', async () => {
   const env = fakeEnvPublic({
     restaurant: { id: 'r1', slug: 'test', name: 'Test', description: '', address: '', hours: '' },
     items: [
-      { id: 'i1', name: 'Dish', description: '', price: 10, category: 'Mains', imageKey: null, tag: null, status: 'PUBLISHED', ingredients: 'Tomato, basil', allergens: '["celery","milk"]', mayContain: '["nuts"]', dietaryTags: '["VEGAN"]', halalStatus: 'UNKNOWN', spiceLevel: null },
+      { id: 'i1', name: 'Dish', description: '', price: 10, category: 'Mains', imageKey: null, tag: null, status: 'PUBLISHED', ingredients: 'Tomato, basil', dietaryTags: '["VEGAN"]', halalStatus: 'UNKNOWN', spiceLevel: null },
     ],
   })
   const res = await app.request('/api/menu/test', undefined, env)
   assert.equal(res.status, 200)
   const body = await res.json() as { items: Array<Record<string, unknown>> }
-  assert.deepEqual(body.items[0].allergens, ['celery', 'milk'])
-  assert.deepEqual(body.items[0].mayContain, ['nuts'])
   assert.deepEqual(body.items[0].dietaryTags, ['VEGAN'])
   assert.equal(body.items[0].ingredients, 'Tomato, basil')
 })

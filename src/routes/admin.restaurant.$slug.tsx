@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSuperadminRestaurants } from '../api'
 import { SuperadminRestaurantDetail } from '../features/superadmin/Superadmin'
@@ -17,7 +17,7 @@ function AdminRestaurantRoute() {
     queryFn: fetchSuperadminRestaurants,
     staleTime: 30_000,
   })
-
+  if (useLocation().pathname.endsWith('/settings')) return <Outlet />
   if (query.isPending) return <div className="waitlist-loading">Memuat restoran…</div>
   if (query.isError) return <div className="waitlist-error-panel">Gagal memuat restoran.</div>
 

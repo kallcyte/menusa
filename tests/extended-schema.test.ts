@@ -50,11 +50,6 @@ test('menuItemSchema accepts valid dietary tags and rejects duplicates beyond li
   assert.equal(menuItemSchema.safeParse({ name: 'Dish', description: '', price: 10, category: 'Mains', dietaryTags: ['UNKNOWN'] }).success, false)
 })
 
-test('menuItemSchema rejects duplicate allergen array exceeding max', () => {
-  // 15 entries exceeds the 14 allowed allergen values
-  const many = Array.from({ length: 15 }, () => 'celery' as const)
-  assert.equal(menuItemSchema.safeParse({ name: 'Dish', description: '', price: 10, category: 'Mains', allergens: many }).success, false)
-})
 
 test('menuItemSchema accepts status enum and rejects invalid', () => {
   assert.equal(menuItemSchema.safeParse({ name: 'Dish', description: '', price: 10, category: 'Mains', status: 'DRAFT' }).success, true)

@@ -85,10 +85,22 @@ function parseRange(segment: string): { days: number[]; schedule: DaySchedule } 
   };
 }
 
+export function getHoursInputValues(hours?: string, hoursDetail?: string): { openingTime: string; closingTime: string } {
+  const candidates = [hours ?? "", ...(hoursDetail ?? "").split(/[·•|;]/)];
+  const range = candidates.map((candidate) => parseRange(candidate.trim())).find((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate));
+  if (!range) return { openingTime: "", closingTime: "" };
+  const openingMinutes = range.schedule.open % (24 * 60);
+  const closingMinutes = range.schedule.close % (24 * 60);
+  return {
+    openingTime: `${String(Math.floor(openingMinutes / 60)).padStart(2, "0")}:${String(openingMinutes % 60).padStart(2, "0")}`,
+    closingTime: `${String(Math.floor(closingMinutes / 60)).padStart(2, "0")}:${String(closingMinutes % 60).padStart(2, "0")}`,
+  };
+}
 function parseSchedule(hours?: string, hoursDetail?: string): DaySchedule[] | undefined {
   const detailSegments = (hoursDetail ?? "").split(/[·•|;]/).map((segment) => segment.trim()).filter(Boolean);
   const detailRanges = detailSegments.map((segment) => parseRange(segment)).filter((range): range is NonNullable<typeof range> => Boolean(range));
-  const ranges = detailRanges.length ? detailRanges : (hours ? [parseRange(hours)].filter((range): range is NonNullable<typeof range> => Boolean(range)) : []);
+  const primaryRange = hours ? parseRange(hours) : undefined;
+  const ranges = primaryRange ? [primaryRange] : detailRanges;
   if (!ranges.length) return undefined;
   const schedule: DaySchedule[] = [];
   for (const range of ranges) {

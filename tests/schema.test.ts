@@ -26,6 +26,11 @@ test('accepts a complete restaurant profile', () => {
   assert.equal(createRestaurantSchema.safeParse({ slug: 'alba-house', name: 'Alba House', description: 'Small plates', address: '8 North Street', hours: 'Open until 10:30 PM' }).success, true)
 })
 
+test('accepts supported restaurant currencies', () => {
+  assert.equal(createRestaurantSchema.safeParse({ slug: 'alba-house', name: 'Alba House', description: 'Small plates', address: '8 North Street', hours: 'Open until 10:30 PM', currency: 'USD' }).success, true)
+  assert.equal(createRestaurantSchema.safeParse({ slug: 'alba-house', name: 'Alba House', description: 'Small plates', address: '8 North Street', hours: 'Open until 10:30 PM', currency: 'GBP' }).success, false)
+})
+
 test('requires a name when creating a restaurant', () => {
   assert.equal(createRestaurantSchema.safeParse({ slug: 'alba-house', description: '', address: '', hours: '' }).success, false)
 })
@@ -42,8 +47,6 @@ test('accepts structured menu item details', () => {
     price: 16,
     category: 'Small plates',
     ingredients: 'Aubergine, miso, sesame',
-    allergens: ['soya', 'sesame'],
-    mayContain: ['cereals-gluten'],
     dietaryTags: ['VEGAN'],
     halalStatus: 'HALAL_INGREDIENTS',
     spiceLevel: 'MILD',
@@ -51,13 +54,12 @@ test('accepts structured menu item details', () => {
   assert.equal(result.success, true)
 })
 
-test('rejects unknown allergens and halal statuses', () => {
+test('rejects invalid halal statuses', () => {
   const result = menuItemSchema.safeParse({
     name: 'Dish',
     description: '',
     price: 10,
     category: 'Mains',
-    allergens: ['hazelnut'],
     halalStatus: 'CERTIFIED',
   })
   assert.equal(result.success, false)

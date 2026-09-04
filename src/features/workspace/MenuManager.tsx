@@ -12,6 +12,7 @@ import {
   Plus,
   RotateCcw,
   Send,
+  Star,
   TriangleAlert,
 } from "lucide-react";
 import { Button } from "../../components";
@@ -23,14 +24,14 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import type { MenuItem } from "../../data";
-import { AddItemModal } from "./AddItemModal";
+import { formatPrice } from "../../lib/currency";
 
 export function MenuManager({
   items,
   onAdd,
+  onEdit,
   onArchive,
   onRestore,
-  onUpdate,
   onPublishItem,
   onDraftItem,
   onReorder,
@@ -43,12 +44,13 @@ export function MenuManager({
   loadError,
   onRetry,
   variant = "workspace",
+  currency = "IDR",
 }: {
   items: MenuItem[];
   onAdd: () => void;
+  onEdit: (item: MenuItem) => void;
   onArchive: (id: string) => Promise<boolean>;
   onRestore: (id: string) => Promise<boolean>;
-  onUpdate: (item: MenuItem) => Promise<boolean>;
   onPublishItem: (id: string) => Promise<boolean>;
   onDraftItem: (id: string) => Promise<boolean>;
   onReorder: (id: string, direction: -1 | 1) => Promise<boolean>;
@@ -61,6 +63,7 @@ export function MenuManager({
   loadError: string | null;
   onRetry: () => void;
   variant?: "workspace" | "superadmin";
+  currency?: string;
 }) {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "DRAFT" | "PUBLISHED" | "ARCHIVED">("ALL");
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -73,7 +76,6 @@ export function MenuManager({
     if (draggedItemId && draggedItemId !== targetId) void onReorderTo(draggedItemId, targetId);
     clearDragState();
   };
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const statusFilters = [
     { value: "ALL" as const, label: "All items" },
     { value: "DRAFT" as const, label: "Drafts" },
@@ -202,13 +204,14 @@ export function MenuManager({
               <div className="menu-item-copy">
                 <div className="menu-item-name-row">
                   <strong>{item.name}</strong>
+                  {item.isSpecial && <span className="menu-item-special"><Star size={11} fill="currentColor" /> Special</span>}
                   {item.tag && <span className="menu-item-tag">{item.tag}</span>}
                 </div>
                 <span>{item.description}</span>
               </div>
             </div>
             <span className="table-category menu-item-category">{item.category}</span>
-            <span className="table-price menu-item-price">${item.price}</span>
+            <span className="table-price menu-item-price">{formatPrice(item.price, currency)}</span>
             <span>
               <span className={`menu-item-status ${itemStatus.toLowerCase()}`}>
                 <span className="live-dot" /> {itemStatus === "DRAFT" ? "Draft" : itemStatus === "ARCHIVED" ? "Archived" : "Published"}
@@ -225,7 +228,7 @@ export function MenuManager({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={6} className="min-w-[150px]">
                   {itemStatus !== "ARCHIVED" && (
-                    <DropdownMenuItem onSelect={() => setEditingItem(item)}>
+                    <DropdownMenuItem onSelect={() => onEdit(item)}>
                       <Pencil size={14} /> Edit item
                     </DropdownMenuItem>
                   )}
@@ -254,7 +257,6 @@ export function MenuManager({
         })}
         {!loadingInitial && !loadError && !visibleItems.length && <div className="menu-empty-state"><p>No {statusFilter === "ALL" ? "menu" : statusFilter.toLowerCase()} items yet.</p><Button variant="outline" size="sm" onClick={onAdd}>Add an item</Button></div>}
       </div>
-      {editingItem && <AddItemModal initialItem={editingItem} onClose={() => setEditingItem(null)} onSave={(item) => { onUpdate(item).then((saved) => { if (saved) setEditingItem(null); }); }} />}
     </div>
   );
 }

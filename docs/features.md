@@ -38,7 +38,7 @@
 - Draft rows have a direct Publish action; archived rows have a Restore action that returns them to Draft.
 - Published rows can be moved back to Draft without archiving, removing them from the public menu while keeping them editable.
 - Tags are optional, editable menu-item metadata stored in `menu_items.tag`; the add/edit modal accepts values such as `Chef's pick`, `Plant-based`, or `Bright & fresh`.
-- Menu details support ingredient highlights, the UK 14 allergens, separate cross-contact warnings, dietary labels, halal status, and spice level. Guests can select a menu card to open the accessible detail dialog.
+- Menu details support ingredient highlights, dietary labels, halal status, and spice level. Guests can select a menu card to open the accessible detail dialog.
 - Menu photos are validated in the Worker by magic bytes (not client-declared MIME), stored in an R2 restaurant prefix, and served with immutable caching. The public `/api/images/*` route serves only images referenced by a published item from a published restaurant; draft previews go through the authenticated `/api/admin/images/*`.
 - The add-item modal uploads a selected JPG, PNG, or WebP before creating the D1 record, and surfaces upload failures instead of saving a broken key.
 - Publishing persists the restaurant's live state through `POST /api/admin/publish`.

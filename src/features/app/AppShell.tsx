@@ -44,6 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const routePath = pathname.replace(/^\/app/, "/admin")
   const activeTab =
     isRootPath ? (isRoleLoading ? "loading" : isSuperadmin ? "overview" : "menu") :
+    (routePath.startsWith("/admin/add") || routePath.startsWith("/admin/edit/")) ? (isSuperadmin ? "restaurants" : "menu") :
     routePath.startsWith("/admin/qr") ? "qr" :
     routePath.startsWith("/admin/menu-settings") ? "menu-settings" :
     routePath.startsWith("/admin/waitlist") ? "waitlist" :
