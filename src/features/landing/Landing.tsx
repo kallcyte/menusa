@@ -328,35 +328,6 @@ export function Landing({ navigate }: { navigate: Navigate }) {
         </div>
       </section>
 
-       {/* LOGO / SOCIAL PROOF STRIP */}
-       <section className="landing-strip">
-       <p className="section-kicker gsap-reveal text-center">{t("stripKicker")}</p>
-       <div className="landing-strip-grid gsap-stagger">
-         {Object.values(restaurants).map((r) => (
-           <button
-             key={r.slug}
-             onClick={() => navigate(`/${r.slug}`)}
-             className="landing-strip-card group text-left"
-           >
-             <div className="landing-strip-card-image">
-               <img src={r.items[0]?.image} alt="" loading="lazy" />
-               <span className="landing-strip-card-badge">{t("liveBadge")}</span>
-             </div>
-             <div className="landing-strip-card-body">
-               <p className="font-display text-[19px] font-medium tracking-[-0.03em] text-[#242622] group-hover:text-[#e75f45] transition-colors">{r.name}</p>
-               <p className="mt-1 line-clamp-2 text-xs leading-[1.4] text-[#777970]">{r.description}</p>
-               <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-[#242622]">{t("openRestaurant", { slug: r.slug })} <ArrowUpRight size={12} /></p>
-             </div>
-           </button>
-         ))}
-         <div className="landing-strip-card landing-strip-card--cta">
-           <p className="font-display text-[20px] font-medium leading-none tracking-[-0.04em]">{t("yourRestaurantHere")}</p>
-           <p className="mt-2 text-xs leading-[1.5] text-[#777970]">{t("getLinkCopy")}</p>
-           <Button onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })} size="sm" className="mt-4 w-fit">{t("joinWaitlist")}</Button>
-         </div>
-       </div>
-       </section>
- 
        {/* PROBLEM → SOLUTION */}
        <section className="landing-section">
          <div className="landing-section-head gsap-reveal">

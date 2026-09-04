@@ -357,15 +357,6 @@
   .landing-qr-card { @apply absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-[#d4d4cc] bg-white p-3 pr-4 shadow-[0_20px_48px_rgba(37,39,35,0.18)] md:bottom-auto md:left-0 md:top-[58%] md:p-4 md:pr-5; }
   .landing-qr-grid span { @apply rounded-sm bg-white; }
   .landing-float-stat { @apply absolute -right-3 -top-3 hidden items-center gap-2 rounded-full border border-[#d4d4cc] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(37,39,35,0.12)] md:flex md:px-3.5 md:py-2.5; }
-  .landing-strip { @apply border-y border-[#d4d4cc]/60 bg-white px-[5.6vw] py-12 md:py-16; }
-  .landing-strip-grid { @apply mt-10 grid gap-6 md:grid-cols-3; }
-  .landing-strip-card { @apply overflow-hidden rounded-2xl border border-[#e3e3dd] bg-[#f7f7f3] transition-all hover:border-[#d4d4cc] hover:shadow-[0_12px_32px_rgba(37,39,35,0.08)] hover:-translate-y-1; }
-  .landing-strip-card-image { @apply relative h-[160px] overflow-hidden bg-[#d7d7cf] md:h-[180px]; }
-  .landing-strip-card-image img { @apply h-full w-full object-cover transition-transform duration-700 group-hover:scale-105; }
-  .landing-strip-card-badge { @apply absolute left-3 top-3 rounded-full bg-[#5a9a68] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.06em] text-white shadow-sm; }
-  .landing-strip-card-body { @apply p-6; }
-  .landing-strip-card--cta { @apply flex flex-col justify-center bg-[#252723] p-7 text-[#f3f2ed] md:p-8; }
-  .landing-strip-card--cta p:first-child em { @apply font-display font-medium; }
   .landing-section { @apply px-[5.6vw] py-16 md:py-24; }
   .landing-section--tinted { @apply bg-white; }
   .landing-section-head { @apply mx-auto max-w-[720px] text-center; }
@@ -691,8 +682,6 @@
   .landing-phone { @apply rounded-[24px]; }
   .landing-qr-card { @apply static mt-4 shadow-none; translate: none !important; }
   .landing-float-stat { @apply hidden; }
-  .landing-strip { @apply px-5 py-8; }
-  .landing-strip-grid { @apply grid-cols-1; }
   .landing-section { @apply px-5 py-10; }
   .landing-section-head h2 { @apply text-[30px]; }
   .landing-problem-grid { @apply grid-cols-1; }
